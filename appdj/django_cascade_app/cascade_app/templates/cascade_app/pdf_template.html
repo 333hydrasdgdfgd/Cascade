@@ -1,0 +1,445 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>CASCADE Report - {{ file_name }}</title>
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <style>
+        /* =========================================================
+           GLOBAL & PAPER STYLING
+           ========================================================= */
+        * { box-sizing: border-box; }
+        
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            color: #1a1a1a;
+            background-color: #eef2f5;
+            margin: 0;
+            padding: 0;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        /* Screen Controls */
+        .no-print {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn {
+            background: #0f172a;
+            color: #ffffff;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-secondary { background: #475569; }
+
+        /* Document Wrapper */
+        .document-container {
+            max-width: 8.5in;
+            margin: 30px auto;
+            background: #ffffff;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        /* =========================================================
+           1. COVER PAGE (MANDATORY PAGE 1)
+           ========================================================= */
+        .cover-page {
+            height: 11in;
+            padding: 1in;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            background: #0d1117; /* Dark Cascade Background */
+            color: #ffffff;
+            page-break-after: always;
+            break-after: page;
+            position: relative;
+        }
+
+        .cover-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cover-badge {
+            font-family: monospace;
+            font-size: 12pt;
+            letter-spacing: 2px;
+            color: #38bdf8;
+            border: 1px solid #38bdf8;
+            padding: 4px 12px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .cover-main {
+            margin-top: auto;
+            margin-bottom: auto;
+        }
+
+        .cover-title {
+            font-size: 52pt;
+            font-weight: 900;
+            letter-spacing: 6px;
+            margin: 0;
+            line-height: 1;
+            text-transform: uppercase;
+            color: #ffffff;
+        }
+
+        .cover-subtitle {
+            font-size: 18pt;
+            font-weight: 300;
+            letter-spacing: 2px;
+            color: #94a3b8;
+            margin-top: 15px;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+        }
+
+        .cover-divider {
+            width: 80px;
+            height: 4px;
+            background: #38bdf8;
+            margin-bottom: 25px;
+        }
+
+        .cover-meta-tag {
+            font-size: 11pt;
+            letter-spacing: 1.5px;
+            color: #cbd5e1;
+            text-transform: uppercase;
+        }
+
+        .cover-footer {
+            border-top: 1px solid #334155;
+            padding-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 9pt;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* =========================================================
+           1.5. TABLE OF CONTENTS (MANDATORY PAGE 2)
+           ========================================================= */
+        .toc-page {
+            min-height: 11in;
+            padding: 1in;
+            background-color: #faf9f6;
+            border-left: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+            page-break-after: always;
+            break-after: page;
+        }
+
+        .toc-heading {
+            font-size: 24pt;
+            font-weight: 900;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            color: #0f172a;
+            margin: 0 0 8px 0;
+        }
+
+        .toc-divider {
+            width: 60px;
+            height: 4px;
+            background: #38bdf8;
+            margin-bottom: 40px;
+        }
+
+        .toc-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .toc-item {
+            display: flex;
+            align-items: baseline;
+            gap: 14px;
+            padding: 14px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .toc-number {
+            font-family: monospace;
+            font-size: 10pt;
+            color: #38bdf8;
+            min-width: 28px;
+        }
+
+        .toc-label {
+            font-size: 12pt;
+            color: #1a1a1a;
+            flex: 1;
+        }
+
+        .toc-section-label {
+            font-size: 8pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #64748b;
+        }
+
+        /* =========================================================
+           2. CONTENT PAGES (BG PAPER STYLE)
+           ========================================================= */
+        .content-container {
+            padding: 0.8in;
+            /* Paper texture/tone effect */
+            background-color: #faf9f6;
+            min-height: 11in;
+            border-left: 1px solid #e2e8f0;
+            border-right: 1px solid #e2e8f0;
+        }
+
+        .report-header {
+            border-bottom: 2px solid #0f172a;
+            padding-bottom: 12px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .report-header-title {
+            font-size: 14pt;
+            font-weight: 800;
+            color: #0f172a;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+
+        .report-header-meta {
+            font-size: 8pt;
+            color: #64748b;
+            text-align: right;
+        }
+
+        .chart-block {
+            margin-bottom: 35px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 20px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+
+        .chart-title {
+            font-size: 11pt;
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-left: 3px solid #0f172a;
+            padding-left: 10px;
+        }
+
+        .chart-image {
+            text-align: center;
+            margin: 15px 0;
+        }
+
+        .chart-image img {
+            width: 100%;
+            max-width: 700px;
+            height: auto;
+        }
+
+        .insights-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            padding: 12px 15px;
+            font-size: 9.5pt;
+            line-height: 1.6;
+            color: #334155;
+        }
+
+        .insights-heading {
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 8pt;
+            color: #64748b;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+        .cover-logo {
+            height: 100px;
+            width: auto;
+            max-width: 360px;
+            object-fit: contain;
+        }
+
+        /* =========================================================
+           PRINT ENGINE OVERRIDES
+           ========================================================= */
+        @media print {
+            body { background: white; }
+            .no-print { display: none !important; }
+            .document-container { max-width: 100%; margin: 0; box-shadow: none; }
+            .cover-page { height: 100vh; }
+            .content-container { min-height: 100vh; padding: 0.5in; border: none; }
+            .toc-page { min-height: 100vh; padding: 0.5in; border: none; }
+            @page { size: letter portrait; margin: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Print Action Controls -->
+    <div class="no-print">
+        <button onclick="window.print()" class="btn">🖨️ Save as PDF</button>
+        <a href="{% url 'visualize_data' %}" class="btn btn-secondary">Back to Visualizer</a>
+    </div>
+
+    <div class="document-container">
+        
+        <!-- PAGE 1: MANDATORY CASCADE COVER PAGE -->
+        <div class="cover-page">
+            <div class="cover-top">
+                <img src="{% static 'images/logo.png' %}" class="cover-logo" alt="Logo"
+                    onerror="this.style.display='none'">
+                <span class="cover-badge">001 Cascade</span>
+            </div>
+            
+            <div class="cover-main">
+                <h1 class="cover-title">CASCADE</h1>
+                <div class="cover-subtitle">Business Insights &amp; Analysis</div>
+                <div class="cover-divider"></div>
+                <div class="cover-meta-tag">File Intelligence Demo / {{ file_name }}</div>
+            </div>
+
+            <div class="cover-footer">
+                <div>Prepared By: <strong>{{ author_name|default:"Authenticated Analyst" }}</strong></div>
+                <div>Exported: {% now "F d, Y" %}</div>
+            </div>
+        </div>
+
+        <!-- PAGE 2: MANDATORY TABLE OF CONTENTS -->
+        <div class="toc-page">
+            <h2 class="toc-heading">Contents</h2>
+            <div class="toc-divider"></div>
+
+            <ol class="toc-list">
+                <li class="toc-item">
+                    <span class="toc-number">01</span>
+                    <span class="toc-label">Overall Data Summary</span>
+                    <span class="toc-section-label">Overview</span>
+                </li>
+                {% for chart in charts %}
+                <li class="toc-item">
+                    <span class="toc-number">{{ forloop.counter|add:1|stringformat:"02d" }}</span>
+                    <span class="toc-label">Visual #{{ forloop.counter }}: {{ chart.x_col }} vs {{ chart.y_col }}</span>
+                    <span class="toc-section-label">Chart</span>
+                </li>
+                {% endfor %}
+                <li class="toc-item">
+                    <span class="toc-number">{{ charts|length|add:2|stringformat:"02d" }}</span>
+                    <span class="toc-label">Recommendations</span>
+                    <span class="toc-section-label">Summary</span>
+                </li>
+            </ol>
+        </div>
+
+        <!-- PAGE 3+: BACKGROUND PAPER REPORT CONTENT -->
+        <div class="content-container">
+            
+            <div class="report-header">
+                <div>
+                    <h2 class="report-header-title">CASCADE Analytics Overview</h2>
+                </div>
+                <div class="report-header-meta">
+                    Dataset: {{ file_name }}<br>
+                    Generated: {% now "Y-m-d H:i" %}
+                </div>
+            </div>
+            <div class="summary-card">
+                <h2>Overall Data Summary</h2>
+
+                <p>
+                    <strong>Dataset:</strong> {{ file_name }}
+                </p>
+
+                <p>
+                    <strong>Records:</strong> {{ rows }}
+                    &nbsp;&nbsp;
+                    <strong>Columns:</strong> {{ cols }}
+                    &nbsp;&nbsp;
+                    <strong>Charts:</strong> {{ charts|length }}
+                </p>
+
+                <h3>Overall Summary</h3>
+
+                <p style="text-align: justify;">
+                    {{ overall_summary }}
+                </p>
+            </div>
+            <!-- Multi-Chart Output -->
+            {% for chart in charts %}
+                <div class="chart-block">
+                    <div class="chart-title">Visual #{{ forloop.counter }}: {{ chart.x_col }} vs {{ chart.y_col }}</div>
+                    <div class="chart-image">
+                        <img src="{{ chart.image_uri }}" alt="Chart {{ forloop.counter }}">
+                    </div>
+                    <div class="insights-box">
+                        <div class="insights-heading">Key Insights &amp; Findings</div>
+                        <div>{{ chart.insights_text|linebreaks }}</div>
+                    </div>
+                </div>
+            {% endfor %}
+                <div class="summary-card recommendations-section">
+
+                    <h2>Recommendations</h2>
+
+                    <p>
+                        Based on the overall dataset analysis and the insights generated
+                        from the charts, the following recommendations are suggested:
+                    </p>
+
+                    <ol style="text-align: justify;">
+                        {% for recommendation in recommendations %}
+                            <li>{{ recommendation }}</li>
+                        {% empty %}
+                            <li>No specific recommendations were generated.</li>
+                        {% endfor %}
+                    </ol>
+
+                </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Trigger print dialog on load
+        window.onload = function() {
+            setTimeout(function() {
+                window.print();
+            }, 400);
+        };
+    </script>
+</body>
+</html>

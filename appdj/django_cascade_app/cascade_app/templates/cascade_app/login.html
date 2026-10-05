@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sign In - Analytics Platform</title>
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <style>
+        body { font-family: 'Helvetica Neue', Arial, sans-serif; background: #0d1117; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .auth-card { background: #161b22; border: 1px solid #30363d; padding: 40px; border-radius: 8px; width: 340px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .auth-title { font-size: 22px; font-weight: 700; text-align: center; margin-bottom: 24px; color: #38bdf8; letter-spacing: 1px; }
+        .form-group { margin-bottom: 18px; }
+        label { display: block; font-size: 13px; color: #8b949e; margin-bottom: 6px; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 10px; background: #0d1117; border: 1px solid #30363d; border-radius: 6px; color: #fff; box-sizing: border-box; }
+        input:focus { border-color: #38bdf8; outline: none; }
+        .btn { width: 100%; background: #38bdf8; color: #0d1117; padding: 12px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn:hover { background: #7dd3fc; }
+        .auth-footer { text-align: center; margin-top: 20px; font-size: 13px; color: #8b949e; }
+        .auth-footer a { color: #38bdf8; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="auth-card">
+        <div class="auth-title">CASCADE SIGN IN</div>
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="id_username">Username</label>
+                {{ form.username }}
+            </div>
+            <div class="form-group">
+                <label for="id_password">Password</label>
+                {{ form.password }}
+            </div>
+            <button type="submit" class="btn">Sign In</button>
+        </form>
+        <div class="auth-footer">
+            Don't have an account? <a href="{% url 'signup' %}">Sign Up</a>
+        </div>
+    </div>
+</body>
+</html>

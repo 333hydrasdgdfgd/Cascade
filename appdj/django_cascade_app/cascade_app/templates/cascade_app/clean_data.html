@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <title>Cascade | Data Cleaning</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #e8e8e8;
+            --text: #111111;
+            --card-bg: #ffffff;
+            --card-border: #111111;
+            --card-shadow: #111111;
+            --muted: #666666;
+            --upload-border: #777777;
+            --btn-bg: #111111;
+            --btn-text: #ffffff;
+            --btn-hover: #333333;
+            --error-bg: #ffe5e5;
+            --error-border: #cc0000;
+            --stat-border: #cccccc;
+            --stat-bg: #f7f7f7;
+            --success-bg: #eeeeee;
+        }
+
+        [data-theme="dark"] {
+            --bg: #0d1117;
+            --text: #e6edf3;
+            --card-bg: #161b22;
+            --card-border: #30363d;
+            --card-shadow: #000000;
+            --muted: #8b949e;
+            --upload-border: #444c56;
+            --btn-bg: #008cff;
+            --btn-text: #ffffff;
+            --btn-hover: #0a6fc7;
+            --error-bg: #3d1f1f;
+            --error-border: #f85149;
+            --stat-border: #30363d;
+            --stat-bg: #1c2128;
+            --success-bg: #1c2128;
+        }
+
+        #theme-toggle {
+            background: transparent;
+            border: 2px solid var(--card-border);
+            color: var(--text);
+            width: 34px;
+            height: 34px;
+            font-size: 15px;
+            cursor: pointer;
+            float: right;
+        }
+
+        body {
+            margin: 0;
+            padding: 40px 20px;
+            background: var(--bg);
+            font-family: Arial, sans-serif;
+            color: var(--text);
+        }
+
+        .container {
+            max-width: 850px;
+            margin: auto;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 2px solid var(--card-border);
+            box-shadow: 8px 8px 0 var(--card-shadow);
+            padding: 35px;
+        }
+
+        h1 {
+            margin-top: 0;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            margin-bottom: 30px;
+        }
+
+        .upload-box {
+            border: 2px dashed var(--upload-border);
+            padding: 35px;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        input[type="file"] {
+            margin: 15px 0;
+        }
+
+        button,
+        .download-btn {
+            display: inline-block;
+            background: var(--btn-bg);
+            color: var(--btn-text);
+            padding: 12px 20px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        button:hover,
+        .download-btn:hover {
+            background: var(--btn-hover);
+        }
+
+        .error {
+            background: var(--error-bg);
+            border: 1px solid var(--error-border);
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .report {
+            margin-top: 35px;
+        }
+
+        .report h2 {
+            margin-bottom: 20px;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat {
+            border: 1px solid var(--stat-border);
+            padding: 18px;
+            background: var(--stat-bg);
+        }
+
+        .stat-number {
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .cleaning-list {
+            padding-left: 20px;
+        }
+
+        .cleaning-list li {
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .success {
+            margin-top: 25px;
+            padding: 15px;
+            background: var(--success-bg);
+            border-left: 5px solid var(--card-border);
+        }
+
+        .download {
+            margin-top: 25px;
+        }
+
+        @media (max-width: 600px) {
+            .summary {
+                grid-template-columns: 1fr;
+            }
+
+            .card {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<script>
+    (function () {
+        var stored = localStorage.getItem('cascade-theme');
+        var theme = stored || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+        document.documentElement.setAttribute('data-theme', theme);
+    })();
+    function toggleTheme() {
+        var current = document.documentElement.getAttribute('data-theme');
+        var next = current === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('cascade-theme', next);
+    }
+</script>
+
+<div class="container">
+
+    <div class="card">
+
+        <button type="button" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">☼</button>
+
+        <h1>Cascade</h1>
+
+        <p class="subtitle">
+            Data Cleaning
+        </p>
+
+        <div class="upload-box">
+
+            <strong>File ready to clean:</strong> {{ uploaded_file_name }}
+
+            <br><br>
+
+            <form method="POST" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit">
+                    Clean Data
+                </button>
+            </form>
+
+            <a href="{% url 'upload_csv' %}" style="margin-left: 10px; font-size: 14px;">
+                Upload a different file
+            </a>
+
+        </div>
+
+
+        {% if error %}
+
+            <div class="error">
+                {{ error }}
+            </div>
+
+        {% endif %}
+
+
+        {% if cleaned %}
+
+        <div class="report">
+
+            <h2>Cleaning Report</h2>
+
+            <div class="summary">
+
+                <div class="stat">
+
+                    <div class="stat-number">
+                        {{ original_rows }}
+                    </div>
+
+                    <div class="stat-label">
+                        Original Rows
+                    </div>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <div class="stat-number">
+                        {{ cleaned_rows }}
+                    </div>
+
+                    <div class="stat-label">
+                        Cleaned Rows
+                    </div>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <div class="stat-number">
+                        {{ original_columns }}
+                    </div>
+
+                    <div class="stat-label">
+                        Original Columns
+                    </div>
+
+                </div>
+
+
+                <div class="stat">
+
+                    <div class="stat-number">
+                        {{ cleaned_columns }}
+                    </div>
+
+                    <div class="stat-label">
+                        Cleaned Columns
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <h3>What Cascade Cleaned</h3>
+
+            <ul class="cleaning-list">
+
+                {% for item in cleaning_report %}
+
+                    <li>
+                        {{ item }}
+                    </li>
+
+                {% endfor %}
+
+            </ul>
+
+
+            <div class="success">
+
+                Data cleaning completed successfully.
+
+            </div>
+
+
+            <div class="download">
+
+                <a
+                    href="{% url 'download_cleaned_data' %}"
+                    class="download-btn"
+                >
+                    Download Cleaned CSV
+                </a>
+
+                <a
+                    href="{% url 'visualize_data' %}"
+                    class="download-btn"
+                    style="margin-left: 10px; background: #008cff;"
+                >
+                    Proceed to Visualize &rarr;
+                </a>
+
+            </div>
+
+        </div>
+
+        {% endif %}
+
+    </div>
+
+</div>
+
+</body>
+</html>

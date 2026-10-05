@@ -1,0 +1,771 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dataset Visualizer</title>
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <style>
+        :root {
+            --bg-body: #161b22;
+            --bg-card: #161b22;
+            --border-color: #30363d;
+            --border-style: 1px solid var(--border-color);
+            --text-main: #fdfdfd;
+            --text-muted: #8b949e;
+            --primary: #38bdf8;
+            --primary-text: #0d1117;
+            --danger: #ef4444;
+            --danger-hover: #dc2626;
+            --success: #10b981;
+            --row-stripe: rgba(255, 255, 255, 0.02);
+            --card-shadow: rgba(0, 0, 0, 0.5);
+
+            --font-family: 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f4f5f7;
+            --bg-card: #ffffff;
+            --border-color: #d7dbe0;
+            --text-main: #14181f;
+            --text-muted: #5b6472;
+            --primary: #0284c7;
+            --primary-text: #ffffff;
+            --danger: #dc2626;
+            --danger-hover: #b91c1c;
+            --success: #059669;
+            --row-stripe: rgba(0, 0, 0, 0.03);
+            --card-shadow: rgba(0, 0, 0, 0.08);
+        }
+
+        #theme-toggle {
+            background: transparent;
+            border: var(--border-style);
+            color: var(--text-main);
+            border-radius: 6px;
+            width: 38px;
+            height: 38px;
+            font-size: 16px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #theme-toggle:hover {
+            border-color: var(--primary);
+        }
+
+        * { 
+            box-sizing: border-box; 
+        }
+
+        /* Keep anchored sections from hugging the very top edge */
+        .chart-card, .summary-card { scroll-margin-top: 20px; }
+
+        /* Swap-axis button */
+        .swap-btn {
+            background: transparent;
+            border: var(--border-style);
+            color: var(--primary);
+            border-radius: 6px;
+            height: 38px;
+            width: 38px;
+            font-size: 18px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: border-color 0.15s ease, background 0.15s ease;
+        }
+        button.btn-secondary {
+            background: transparent;
+            color: var(--primary);
+            border: var(--border-style);
+        }
+        button.btn-secondary:hover { background: rgba(56, 189, 248, 0.1); opacity: 1; }
+
+        .chart-actions { display: flex; gap: 8px; align-items: center; }
+
+        .axis-hint {
+            display: none;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 6px;
+            font-size: 12px;
+            color: #f59e0b;
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            border-radius: 6px;
+            padding: 6px 10px;
+            margin-bottom: 12px;
+        }
+        .axis-hint .hint-link {
+            background: none;
+            border: none;
+            padding: 0;
+            font: inherit;
+            font-weight: bold;
+            color: var(--primary);
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .swap-btn:hover { border-color: var(--primary); background: rgba(56, 189, 248, 0.1); }
+
+        body { 
+            font-family: var(--font-family); 
+            margin: 0;
+            padding: 30px 15px; 
+            background: var(--bg-body); 
+            color: var(--text-main); 
+            min-height: 100vh; 
+            line-height: 1.5;
+        }
+
+        .container { 
+            max-width: 1100px; 
+            margin: 0 auto; 
+            background: var(--bg-card); 
+            border: var(--border-style); 
+            border-radius: 8px;
+            padding: 25px; 
+            box-shadow: 0 10px 25px var(--card-shadow); 
+        }
+
+        .header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: var(--border-style); 
+            padding-bottom: 15px; 
+            margin-bottom: 20px; 
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        h1 { 
+            margin: 0; 
+            font-size: 22px; 
+            font-weight: 700;
+            color: var(--primary);
+            letter-spacing: 1px;
+        }
+        
+        /* Summary Card Styling */
+        .summary-card { 
+            background: var(--bg-body); 
+            border: var(--border-style); 
+            border-radius: 8px;
+            padding: 18px; 
+            margin-bottom: 20px; 
+        }
+
+        .summary-card h3 { 
+            margin: 0 0 12px 0; 
+            font-size: 16px; 
+            color: var(--primary);
+            border-bottom: var(--border-style); 
+            padding-bottom: 6px; 
+        }
+
+        .stats-grid { 
+            display: flex; 
+            gap: 20px; 
+            color: var(--text-main); 
+            margin-bottom: 12px; 
+            flex-wrap: wrap; 
+            font-size: 13px;
+        }
+
+        .cols-list { 
+            font-size: 12px; 
+            color: var(--text-muted); 
+            word-break: break-all; 
+            background: var(--bg-card);
+            padding: 10px;
+            border: var(--border-style);
+            border-radius: 6px;
+        }
+
+        /* Preview Table Styling */
+        #preview-container {
+            display: none;
+            margin-top: 12px;
+            max-height: 300px;
+            overflow: auto;
+            border: var(--border-style);
+            border-radius: 6px;
+            background: var(--bg-body);
+        }
+
+        /* Custom Scrollbar for Preview */
+        #preview-container::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        #preview-container::-webkit-scrollbar-track {
+            background: var(--bg-body);
+        }
+        #preview-container::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 4px;
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            font-family: var(--font-family);
+            color: var(--text-main);
+        }
+
+        .preview-table th, .preview-table td {
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        .preview-table th {
+            background: var(--bg-card);
+            color: var(--primary);
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            border-bottom: var(--border-style);
+        }
+
+        .preview-table tr:nth-child(even) {
+            background-color: var(--row-stripe);
+        }
+
+        /* Chart Cards */
+        .chart-card { 
+            background: var(--bg-body); 
+            border: var(--border-style); 
+            border-radius: 8px;
+            padding: 20px; 
+            margin-bottom: 25px; 
+        }
+
+        .chart-card-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: var(--border-style); 
+            padding-bottom: 10px; 
+            margin-bottom: 18px; 
+        }
+
+        /* Forms & Inputs */
+        .form-row { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 15px; 
+            align-items: flex-end; 
+            margin-bottom: 15px; 
+        }
+
+        .form-group { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 6px; 
+        }
+
+        label { 
+            font-size: 13px; 
+            color: var(--text-muted);
+        }
+
+        select, textarea { 
+            border: var(--border-style); 
+            background: var(--bg-body); 
+            font-family: var(--font-family); 
+            color: var(--text-main);
+            border-radius: 6px;
+            outline: none;
+            transition: border-color 0.15s ease;
+        }
+
+        select {
+            padding: 8px 12px;
+            cursor: pointer; 
+            height: 38px;
+        }
+
+        select:focus, textarea:focus {
+            border-color: var(--primary);
+        }
+
+        textarea { 
+            width: 100%; 
+            font-size: 13px; 
+            padding: 10px; 
+            resize: vertical; 
+            line-height: 1.5;
+        }
+
+        /* Button Styling */
+        button.btn, a.btn { 
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary); 
+            color: var(--primary-text); 
+            padding: 10px 18px; 
+            border: none; 
+            border-radius: 6px;
+            font-family: var(--font-family); 
+            font-size: 13px;
+            font-weight: bold; 
+            text-decoration: none; 
+            cursor: pointer; 
+            transition: opacity 0.15s ease;
+            user-select: none;
+        }
+
+        button.btn:hover, a.btn:hover { 
+            opacity: 0.9;
+        }
+
+        button.btn-danger { 
+            background: var(--danger); 
+            color: #ffffff;
+        }
+
+        button.btn-danger:hover { 
+            background: var(--danger-hover); 
+        }
+
+        a.btn-outline { 
+            background: transparent; 
+            color: var(--primary); 
+            border: var(--border-style);
+        }
+
+        a.btn-outline:hover { 
+            background: rgba(56, 189, 248, 0.1); 
+        }
+
+        .chart-container { 
+            border: var(--border-style); 
+            border-radius: 6px;
+            padding: 15px; 
+            text-align: center; 
+            background: var(--bg-card); 
+            margin-bottom: 15px; 
+            overflow-x: auto;
+        }
+        .footer {
+        border-top: 2px solid var(--border-color);
+        color: var(--text-muted);
+        margin-top: 22px;
+        padding-top: 13px;
+        text-align: center;
+        font-size: 12px;
+        font-weight: bold;
+        text-transform: uppercase;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        (function () {
+            var stored = localStorage.getItem('cascade-theme');
+            var theme = stored || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+        function toggleTheme() {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('cascade-theme', next);
+        }
+    </script>
+    <div class="container">
+        <div class="header">
+            <h1>Data Visualizer</h1>
+            <div style="display: flex; gap: 10px;">
+                <button type="button" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">☼</button>
+                <!-- Added Export PDF Button -->
+                <a href="{% url 'export_pdf' %}" class="btn" style="background: #4f46e5; color: white; border-color: #312e81;">Download PDF</a>
+                
+                <a href="{% url 'upload_csv' %}" class="btn btn-outline">Upload New File</a>
+            </div>
+        </div>
+        
+
+        <!-- File Summary Description Card with Collapsible Preview -->
+        <div class="summary-card">
+            <h3>File Overview</h3>
+            <div class="stats-grid">
+                <div>Author: <u>{{ author_name }}</u></div>
+                <div>File Name: <u>{{ file_name }}</u></div>
+                <div>Total Rows: <u>{{ rows }}</u></div>
+                <div>Total Columns: <u>{{ cols }}</u></div>
+            </div>
+            <div class="cols-list">
+                <strong>Detected Columns:</strong> {{ column_names|join:", " }}
+            </div>
+
+            <!-- Preview Toggle Button -->
+            {% if preview_html %}
+                <div style="margin-top: 12px;">
+                    <button type="button" id="preview-toggle-btn" onclick="togglePreview()" class="btn btn-outline" style="font-size: 11px; padding: 6px 12px;">
+                        ▶ Show Data Preview (First 10 Rows)
+                    </button>
+                </div>
+                <!-- Collapsible Table Drawer -->
+                <div id="preview-container">
+                    {{ preview_html|safe }}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Rendered Multi-Chart List -->
+        {% for chart in rendered_charts %}
+            <div class="chart-card" id="chart-{{ chart.index }}">
+                <div class="chart-card-header">
+                    <strong>Chart #{{ forloop.counter }}</strong>
+                    <div class="chart-actions">
+                        <form method="POST" style="margin: 0;"{% if summary_is_custom or recommendations_is_custom %} onsubmit="return confirm('Duplicating adds a chart, so your custom Overall Summary / Recommendations will reset to auto-generated. Continue?');"{% endif %}>
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="duplicate_chart">
+                            <input type="hidden" name="chart_index" value="{{ chart.index }}">
+                            <button type="submit" class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" title="Copy this chart so you can try a different chart type">Duplicate Chart</button>
+                        </form>
+                        {% if rendered_charts|length > 1 %}
+                            <form method="POST" style="margin: 0;" onsubmit="return confirm('Remove Chart #{{ forloop.counter }}? Its saved insight will be deleted.{% if summary_is_custom or recommendations_is_custom %} Your custom Overall Summary / Recommendations will also reset to auto-generated.{% endif %}');">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="remove_chart">
+                                <input type="hidden" name="chart_index" value="{{ chart.index }}">
+                                <button type="submit" class="btn btn-danger" style="padding: 4px 10px; font-size: 11px;">Remove Chart</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <form method="POST" class="chart-form" data-custom-insight="{{ chart.insight_is_custom|yesno:'1,0' }}" onsubmit="return confirmChartChange(this, event)">
+                    {% csrf_token %}
+                    <input type="hidden" name="chart_index" value="{{ chart.index }}">
+
+                    <div class="form-row">
+                        <div class="form-group chart-type-group">
+                            <label>Chart Type</label>
+                            <select name="chart_type" onchange="updateAxisVisibility(this)">
+                                <option value="auto" {% if chart.chart_type == 'auto' %}selected{% endif %}>Auto (Recommended)</option>
+                                <option value="bar" {% if chart.chart_type == 'bar' %}selected{% endif %}>Bar Chart</option>
+                                <option value="horizontal_bar" {% if chart.chart_type == 'horizontal_bar' %}selected{% endif %}>Horizontal Bar Chart</option>
+                                <option value="pie" {% if chart.chart_type == 'pie' %}selected{% endif %}>Pie Chart</option>
+                                <option value="line" {% if chart.chart_type == 'line' %}selected{% endif %}>Line Chart</option>
+                                <option value="area" {% if chart.chart_type == 'area' %}selected{% endif %}>Area Chart</option>
+                                <option value="scatter" {% if chart.chart_type == 'scatter' %}selected{% endif %}>Scatter Plot</option>
+                                <option value="histogram" {% if chart.chart_type == 'histogram' %}selected{% endif %}>Histogram</option>
+                                <option value="box" {% if chart.chart_type == 'box' %}selected{% endif %}>Box Plot</option>
+                                <option value="heatmap" {% if chart.chart_type == 'heatmap' %}selected{% endif %}>Correlation Heatmap</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group x-group">
+                            <label class="x-label">X Axis</label>
+                            <select name="x_col" onchange="updateAxisHint(this.closest('form'))">
+                                {% for col in column_names %}
+                                    <option value="{{ col }}" {% if chart.x_col == col %}selected{% endif %}>{{ col }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group swap-group">
+                            <label>&nbsp;</label>
+                            <button type="button" class="swap-btn" onclick="swapAxes(this)" title="Switch X and Y axis" aria-label="Switch X and Y axis">&#8644;</button>
+                        </div>
+
+                        <div class="form-group y-group">
+                            <label class="y-label">Y Axis</label>
+                            <select name="y_col" onchange="updateAxisHint(this.closest('form'))">
+                                {% for col in column_names %}
+                                    <option value="{{ col }}" {% if chart.y_col == col %}selected{% endif %}>{{ col }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group period-group" style="display: none;">
+                            <label title="Your X axis is a date. Group rows into periods so the line is readable.">Group dates by</label>
+                            <select name="period" onchange="updateAxisHint(this.closest('form'))">
+                                {% for key, label in time_periods %}
+                                    <option value="{{ key }}" {% if chart.period == key %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="form-group agg-group" style="display: none;">
+                            <label>Show</label>
+                            <select name="agg" onchange="updateAxisHint(this.closest('form'))">
+                                {% for key, label in time_aggs %}
+                                    <option value="{{ key }}" {% if chart.agg == key %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <button
+                            type="submit"
+                            name="action"
+                            value="update_chart"
+                            class="btn">
+                            Update Chart
+                        </button>
+                    </div>
+
+                    <div class="axis-hint">
+                        <span class="axis-hint-text"></span>
+                        <button type="button" class="hint-link" onclick="swapAxes(this)">Switch axes?</button>
+                    </div>
+
+                    {% if chart.auto_detected_label %}
+                        <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 8px;">
+                            Auto-detected: {{ chart.auto_detected_label }}
+                        </div>
+                    {% endif %}
+
+                    <div class="chart-container">
+                        {{ chart.plot_html|safe }}
+                    </div>
+
+                    <label style="margin-bottom: 5px; display: block; font-size: 12px; font-weight: bold; text-transform: uppercase;">Written Insights</label>
+                    <textarea name="insights_text" rows="3">{{ chart.insights_text }}</textarea>
+                    
+                    <div style="margin-top: 8px;">
+                        <button
+                            type="submit"
+                            name="action"
+                            value="save_insight"
+                            class="btn"
+                            style="font-size: 12px;">
+                            Save Chart &amp; Insights
+                        </button>
+                    </div>
+                </form>
+            </div>
+        {% endfor %}
+                <!-- Overall Summary -->
+        <div class="summary-card" id="overall-summary">
+            <div class="chart-card-header" style="border-bottom: none; margin-bottom: 10px; padding-bottom: 0;">
+                <h3 style="margin: 0; border-bottom: none; padding-bottom: 0;">Overall Summary</h3>
+                {% if summary_is_custom %}
+                    <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--success);">Custom</span>
+                {% endif %}
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                <textarea name="overall_summary_text" rows="4" style="width: 100%; padding: 10px;">{{ overall_summary }}</textarea>
+                <div style="margin-top: 8px; display: flex; gap: 8px;">
+                    <button type="submit" name="action" value="save_summary" class="btn" style="font-size: 12px;">Save Summary</button>
+                    {% if summary_is_custom %}
+                        <button type="submit" name="action" value="reset_summary" class="btn btn-outline" style="font-size: 12px;">Reset to Auto-Generated</button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+
+        <!-- Recommendations -->
+        <div class="summary-card" id="recommendations">
+            <div class="chart-card-header" style="border-bottom: none; margin-bottom: 10px; padding-bottom: 0;">
+                <h3 style="margin: 0; border-bottom: none; padding-bottom: 0;">Recommendations</h3>
+                {% if recommendations_is_custom %}
+                    <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--success);">Custom</span>
+                {% endif %}
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 6px;">One recommendation per line</label>
+                <textarea name="recommendations_text" rows="6" style="width: 100%; padding: 10px;">{% for recommendation in recommendations %}{{ recommendation }}
+{% endfor %}</textarea>
+                <div style="margin-top: 8px; display: flex; gap: 8px;">
+                    <button type="submit" name="action" value="save_recommendations" class="btn" style="font-size: 12px;">Save Recommendations</button>
+                    {% if recommendations_is_custom %}
+                        <button type="submit" name="action" value="reset_recommendations" class="btn btn-outline" style="font-size: 12px;">Reset to Auto-Generated</button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+        <!-- Add Chart Button -->
+        <form method="POST" style="margin-top: 15px; text-align: center;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_chart">
+            <button type="submit" class="btn" style="background: #10b981; font-size: 14px; padding: 12px 24px;">+ Add Another Chart</button>
+        </form>
+        <footer class="footer">
+            © 2026 Cascade. All rights reserved.
+        </footer>
+    </div>
+
+    {{ numeric_columns|json_script:"numeric-cols" }}
+    {{ date_columns|json_script:"date-cols" }}
+    <script>
+        // Toggle the preview drawer
+        function togglePreview() {
+            const container = document.getElementById('preview-container');
+            const btn = document.getElementById('preview-toggle-btn');
+            if (container.style.display === 'none' || container.style.display === '') {
+                container.style.display = 'block';
+                btn.textContent = '▼ Hide Data Preview';
+            } else {
+                container.style.display = 'none';
+                btn.textContent = '▶ Show Data Preview (First 10 Rows)';
+            }
+        }
+
+        const NUMERIC_COLS = new Set(JSON.parse(document.getElementById('numeric-cols').textContent || '[]'));
+        const DATE_COLS = new Set(JSON.parse(document.getElementById('date-cols').textContent || '[]'));
+        const REPLACE_MSG = 'This will replace your saved/edited insight with a new auto-generated one. Continue?';
+
+        function originalValue(select) {
+            const opt = Array.from(select.options).find(o => o.defaultSelected);
+            return opt ? opt.value : select.options[0].value;
+        }
+
+        function configChanged(form) {
+            const type = form.querySelector('select[name="chart_type"]');
+            const x = form.querySelector('select[name="x_col"]');
+            const y = form.querySelector('select[name="y_col"]');
+            const period = form.querySelector('select[name="period"]');
+            const agg = form.querySelector('select[name="agg"]');
+            return type.value !== originalValue(type)
+                || x.value !== originalValue(x)
+                || y.value !== originalValue(y)
+                || (period && period.value !== originalValue(period))
+                || (agg && agg.value !== originalValue(agg));
+        }
+
+        // True when the user has a saved insight, or typed changes not yet saved
+        function insightAtRisk(form) {
+            const ta = form.querySelector('textarea[name="insights_text"]');
+            return form.dataset.customInsight === '1' || (ta && ta.value !== ta.defaultValue);
+        }
+
+        // Ask before a chart change throws away a saved or hand-edited insight
+        function confirmChartChange(form, event) {
+            if (form.dataset.skipConfirm) {
+                delete form.dataset.skipConfirm;
+                return true;
+            }
+            const submitter = event && event.submitter;
+            if (!submitter || submitter.value !== 'update_chart') return true;
+            if (configChanged(form) && insightAtRisk(form)) return confirm(REPLACE_MSG);
+            return true;
+        }
+
+        // Swap the X and Y columns, then update the chart right away
+        function swapAxes(btn) {
+            const form = btn.closest('form');
+            const xSel = form.querySelector('select[name="x_col"]');
+            const ySel = form.querySelector('select[name="y_col"]');
+            if (xSel.value === ySel.value) return;
+
+            const oldX = xSel.value, oldY = ySel.value;
+            xSel.value = oldY;
+            ySel.value = oldX;
+
+            if (configChanged(form) && insightAtRisk(form) && !confirm(REPLACE_MSG)) {
+                xSel.value = oldX;
+                ySel.value = oldY;
+                updateAxisHint(form);
+                return;
+            }
+
+            form.dataset.skipConfirm = '1';
+            const updateBtn = form.querySelector('button[name="action"][value="update_chart"]');
+            if (form.requestSubmit) {
+                form.requestSubmit(updateBtn);
+            } else {
+                updateBtn.click();
+            }
+        }
+
+        // Show a "looks reversed" hint when a numeric column is on X and a text column on Y
+        const AXIS_SENSITIVE_TYPES = ['auto', 'bar', 'horizontal_bar', 'pie', 'line', 'area'];
+        // Group-by only applies to line/area charts with a date on X and a number on Y
+        const TIME_GROUP_TYPES = ['auto', 'line', 'area'];
+        function updatePeriodVisibility(form) {
+            const type = form.querySelector('select[name="chart_type"]').value;
+            const x = form.querySelector('select[name="x_col"]').value;
+            const y = form.querySelector('select[name="y_col"]').value;
+            const applies = TIME_GROUP_TYPES.includes(type)
+                && x !== y
+                && DATE_COLS.has(x)
+                && NUMERIC_COLS.has(y);
+            const period = form.querySelector('select[name="period"]');
+            form.querySelector('.period-group').style.display = applies ? 'flex' : 'none';
+            // "Show" (sum/average/...) is only meaningful once a period is picked
+            form.querySelector('.agg-group').style.display =
+                (applies && period.value !== 'none') ? 'flex' : 'none';
+        }
+
+        function updateAxisHint(form) {
+            updatePeriodVisibility(form);
+            const hint = form.querySelector('.axis-hint');
+            if (!hint) return;
+            const type = form.querySelector('select[name="chart_type"]').value;
+            const x = form.querySelector('select[name="x_col"]').value;
+            const y = form.querySelector('select[name="y_col"]').value;
+            const reversed = AXIS_SENSITIVE_TYPES.includes(type)
+                && x !== y
+                && NUMERIC_COLS.has(x)
+                && !NUMERIC_COLS.has(y);
+            hint.style.display = reversed ? 'flex' : 'none';
+            if (reversed) {
+                hint.querySelector('.axis-hint-text').textContent =
+                    'Looks reversed: "' + y + '" is text and "' + x + '" is numeric.';
+            }
+        }
+
+        // Dynamic Axis Labels per Chart
+        function updateAxisVisibility(selectElement) {
+            const formRow = selectElement.closest('.form-row');
+            const chartType = selectElement.value;
+            
+            const xGroup = formRow.querySelector('.x-group');
+            const yGroup = formRow.querySelector('.y-group');
+            const swapGroup = formRow.querySelector('.swap-group');
+            const xLabel = formRow.querySelector('.x-label');
+            const yLabel = formRow.querySelector('.y-label');
+
+            if (chartType === 'heatmap') {
+                xGroup.style.display = 'none';
+                yGroup.style.display = 'none';
+                swapGroup.style.display = 'none';
+            } else if (chartType === 'histogram') {
+                xGroup.style.display = 'flex';
+                yGroup.style.display = 'none';
+                swapGroup.style.display = 'none';
+                xLabel.textContent = 'Column to Analyze';
+            } else if (chartType === 'pie') {
+                xGroup.style.display = 'flex';
+                yGroup.style.display = 'flex';
+                swapGroup.style.display = 'flex';
+                xLabel.textContent = 'Categories';
+                yLabel.textContent = 'Values';
+            } else {
+                xGroup.style.display = 'flex';
+                yGroup.style.display = 'flex';
+                swapGroup.style.display = 'flex';
+                xLabel.textContent = 'X Axis';
+                yLabel.textContent = 'Y Axis';
+            }
+            updateAxisHint(selectElement.closest('form'));
+        }
+
+        // Run on page load for all charts
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('select[name="chart_type"]').forEach(select => {
+                updateAxisVisibility(select);
+            });
+        });
+    </script>
+</body>
+</html>

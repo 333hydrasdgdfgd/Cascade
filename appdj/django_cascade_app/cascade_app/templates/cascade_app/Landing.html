@@ -1,0 +1,321 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cascade — Turn Raw Data Into Insight</title>
+    <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <style>
+        * { box-sizing: border-box; }
+
+        :root {
+            --bg-body: #0d1117;
+            --bg-card: #161b22;
+            --border-color: #30363d;
+            --text-main: #fdfdfd;
+            --text-muted: #8b949e;
+            --primary: #38bdf8;
+            --primary-text: #0d1117;
+            --shadow: rgba(0, 0, 0, 0.4);
+        }
+
+        [data-theme="light"] {
+            --bg-body: #f4f5f7;
+            --bg-card: #ffffff;
+            --border-color: #d7dbe0;
+            --text-main: #14181f;
+            --text-muted: #5b6472;
+            --primary: #0284c7;
+            --primary-text: #ffffff;
+            --shadow: rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-body);
+            color: var(--text-main);
+        }
+
+        #theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            border-radius: 6px;
+            width: 40px;
+            height: 40px;
+            font-size: 17px;
+            cursor: pointer;
+            z-index: 100;
+        }
+        #theme-toggle:hover { border-color: var(--primary); }
+
+        /* ============ HERO ============ */
+        .hero {
+            min-height: 70vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 60px 20px 40px;
+        }
+
+        .hero-badge {
+            font-family: monospace;
+            font-size: 11pt;
+            letter-spacing: 2px;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 4px 14px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+        }
+
+        .hero-content-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 32px 56px;
+            margin-bottom: 24px;
+        }
+
+        .hero-title {
+            font-size: 54px;
+            font-weight: 900;
+            letter-spacing: 5px;
+            text-transform: uppercase;
+            margin: 0;
+            line-height: 1;
+        }
+
+        .hero-subtitle {
+            font-size: 16px;
+            font-weight: 300;
+            color: var(--text-muted);
+            letter-spacing: 0.5px;
+            margin: 14px 0 0;
+        }
+
+        .hero-divider {
+            width: 60px;
+            height: 3px;
+            background: var(--primary);
+            margin: 0 0 22px;
+        }
+
+        .hero-desc {
+            max-width: 480px;
+            color: var(--text-muted);
+            font-size: 14.5px;
+            line-height: 1.55;
+            margin-bottom: 28px;
+        }
+
+        .btn-start {
+            display: inline-block;
+            background: var(--primary);
+            color: var(--primary-text);
+            font-weight: 700;
+            font-size: 14px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            text-decoration: none;
+            padding: 13px 36px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-start:hover { filter: brightness(1.1); }
+
+        .scroll-hint {
+            margin-top: 32px;
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        /* ============ FEATURES ============ */
+        .features {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px 70px;
+        }
+
+        .features-heading {
+            text-align: center;
+            margin-bottom: 6px;
+        }
+
+        .features-heading h2 {
+            font-size: 22px;
+            letter-spacing: 1px;
+            margin: 0;
+        }
+
+        .features-heading p {
+            color: var(--text-muted);
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-top: 32px;
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px 18px;
+        }
+
+        .feature-step {
+            font-family: monospace;
+            font-size: 10.5px;
+            color: var(--primary);
+            letter-spacing: 1px;
+        }
+
+        .feature-icon {
+            font-size: 22px;
+            margin: 8px 0 10px;
+        }
+
+        .feature-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .feature-desc {
+            font-size: 13px;
+            line-height: 1.5;
+            color: var(--text-muted);
+        }
+
+        .footer {
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            padding: 18px 20px;
+            font-size: 11px;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        @media (max-width: 800px) {
+            .feature-grid { grid-template-columns: 1fr; }
+            .hero-title { font-size: 36px; letter-spacing: 3px; }
+            .hero-content-box { padding: 24px 28px; }
+        }
+        .section-divider {
+            border: none;
+            border-top: 1px solid var(--border-color);
+            margin: 0;    border-top: 2px solid var(--primary);
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <script>
+        (function () {
+            var stored = localStorage.getItem('cascade-theme');
+            var theme = stored || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+        function toggleTheme() {
+            var current = document.documentElement.getAttribute('data-theme');
+            var next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('cascade-theme', next);
+        }
+    </script>
+
+    <button type="button" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">🌓</button>
+
+    <!-- HERO -->
+    <div class="hero">
+        <div class="hero-badge">001 Cascade</div>
+
+        <div class="hero-content-box">
+            <h1 class="hero-title">Cascade</h1>
+            <div class="hero-subtitle">Business Insights &amp; Analysis</div>
+        </div>
+
+        <div class="hero-divider"></div>
+        <p class="hero-desc">
+            Upload a messy spreadsheet and Cascade takes it from there —
+            cleaning, visualizing, and writing up the findings, so you get
+            to the insight instead of the busywork.
+        </p>
+        <a href="{% url 'login' %}" class="btn-start">Get Started</a>
+        <div class="scroll-hint">↓ What Cascade does</div>
+    </div>
+    <hr class="section-divider">
+    <!-- FEATURES -->
+    <div class="features">
+        <div class="features-heading">
+            <h2>From raw file to finished report</h2>
+            <p>Six steps, one upload.</p>
+        </div>
+
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-step">STEP 01</div>
+                <div class="feature-icon">📂</div>
+                <div class="feature-title">Upload Your Data</div>
+                <div class="feature-desc">Bring in a CSV or Excel file — that's all Cascade needs to get started.</div>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-step">STEP 02</div>
+                <div class="feature-icon">🧹</div>
+                <div class="feature-title">Automatic Cleaning</div>
+                <div class="feature-desc">Duplicates, blank rows, inconsistent spacing, mixed date formats, and messy capitalization get standardized automatically — with a full report of exactly what changed.</div>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-step">STEP 03</div>
+                <div class="feature-icon">📊</div>
+                <div class="feature-title">Visualize It</div>
+                <div class="feature-desc">Build charts from your cleaned data and customize them — pick the columns, the chart type, and the view that tells the story best.</div>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-step">STEP 04</div>
+                <div class="feature-icon">💡</div>
+                <div class="feature-title">Auto-Generated Insights</div>
+                <div class="feature-desc">Every chart comes with a written insight — and you can edit it further to sharpen it or add context only you know.</div>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-step">STEP 05</div>
+                <div class="feature-icon">📝</div>
+                <div class="feature-title">Summary &amp; Recommendations</div>
+                <div class="feature-desc">A dataset-wide summary and a set of actionable recommendations, generated from everything Cascade found.</div>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-step">STEP 06</div>
+                <div class="feature-icon">📄</div>
+                <div class="feature-title">Export as PDF</div>
+                <div class="feature-desc">Package the charts, insights, summary, and recommendations into a polished PDF report — ready to share.</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        © 2026 Cascade. All rights reserved.
+    </div>
+</body>
+</html>

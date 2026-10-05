@@ -1,0 +1,21 @@
+customer_id,name,email,city,age,gender,monthly_income,registration_date
+1,Juan Dela Cruz,juan@email.com,Dumaguete,21.0,Male,18500,2026-01-05
+2,Maria Santos,maria@email.com,Dumaguete,22.0,Female,22000,01/08/2026
+3,Pedro Reyes,pedro@email,Dumagete,23.0,M,19500,2026/01/10
+4,Ana Garcia,ana@email.com,Bacolod,21.0,female,21000,"Jan 12, 2026"
+5,Jose Ramos,,Cebu City,24.0,Male,25000,2026-01-15
+6,Angela Cruz,angela@email.com,Cebu,22.0,F,23000,2026-01-18
+7,Mark Tan,mark@email.com,Manila,25.0,Male,27500,2026-01-20
+8,Liza Mendoza,liza@email.com,Manila,,Female,26000,2026-01-22
+9,Carlo Diaz,carlo@email.com,Bacolod,23.0,Male,24000,2026-01-25
+10,Sofia Lim,sofia@email.com,Cebu City,22.0,Female,23500,2026-01-28
+11,John Smith,john@email.com,Dumaguete,21.0,Male,20000,2026-02-01
+12,Maria Santos,maria@email.com,Dumaguete,22.0,Female,22000,2026-02-03
+13,Kevin Ong,kevin@email.com,Cebu City,26.0,Male,-5000,2026-02-05
+14,Rina Flores,rina@email.com,Manila,20.0,Female,21500,2026-02-08
+15,Paul Garcia,paul@email.com,Bacolod,28.0,Male,31000,2026-02-10
+16,Ella Cruz,ella@email.com,Cebu City,22.0,Female,22500,2026-02-12
+17,Miguel Santos,miguel@email.com,Cebu City,22.0,Male,22500,2026-02-15
+18,Nina Reyes,nina@email.com,Dumaguete,21.0,F,20500,2026-02-18
+19,Arvin Lee,arvin@email.com,Manila,150.0,Male,28000,2026-02-20
+20,Bea Torres,bea@email.com,Bacolod,23.0,Female,24500,
