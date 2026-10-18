@@ -1,0 +1,26 @@
+# Virtual environment
+venv/
+.venv/
+
+# Local database
+db.sqlite3
+*.sqlite3
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Environment secrets
+.env
+.env.*
+
+# User uploads
+media/
+
+# Generated static files
+staticfiles/
+
+# Editor / OS files
+.vscode/
+.idea/
+.DS_Store

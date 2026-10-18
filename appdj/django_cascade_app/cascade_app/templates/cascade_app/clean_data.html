@@ -1,13 +1,19 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Cascade | Data Cleaning</title>
 
     <style>
         * {
             box-sizing: border-box;
+        }
+
+        [hidden] {
+            display: none !important;
         }
 
         :root {
@@ -26,6 +32,12 @@
             --stat-border: #cccccc;
             --stat-bg: #f7f7f7;
             --success-bg: #eeeeee;
+            --accent: #008cff;
+            --danger: #cc0000;
+            --warn-bg: #fff6dd;
+            --warn-border: #d9a400;
+            --ok: #1a7f37;
+            --overlay: rgba(0, 0, 0, 0.55);
         }
 
         [data-theme="dark"] {
@@ -44,6 +56,12 @@
             --stat-border: #30363d;
             --stat-bg: #1c2128;
             --success-bg: #1c2128;
+            --accent: #3da5ff;
+            --danger: #f85149;
+            --warn-bg: #3a2f12;
+            --warn-border: #d29922;
+            --ok: #3fb950;
+            --overlay: rgba(0, 0, 0, 0.7);
         }
 
         #theme-toggle {
@@ -55,14 +73,30 @@
             font-size: 15px;
             cursor: pointer;
             float: right;
+            padding: 0;
         }
 
         body {
             margin: 0;
             padding: 40px 20px;
-            background: var(--bg);
+            background: transparent;
             font-family: Arial, sans-serif;
             color: var(--text);
+        }
+
+        body.modal-open {
+            overflow: hidden;
+        }
+
+        /* Page background: the same svg 4 used on login and signup (static/images/auth-bg.svg).
+           It stays dark in light mode too; the cards on top still follow the theme. */
+        html { background: #05080f; }
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: url("{% static 'images/auth-bg.svg' %}") center / cover no-repeat, #05080f;
         }
 
         .container {
@@ -94,6 +128,12 @@
             margin-bottom: 25px;
         }
 
+        .file-line {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--stat-border);
+        }
+
         input[type="file"] {
             margin: 15px 0;
         }
@@ -108,11 +148,41 @@
             cursor: pointer;
             text-decoration: none;
             font-weight: bold;
+            font-family: inherit;
+            font-size: 14px;
         }
 
         button:hover,
         .download-btn:hover {
             background: var(--btn-hover);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        button:focus-visible,
+        .download-btn:focus-visible,
+        a:focus-visible {
+            outline: 3px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text);
+            border: 2px solid var(--card-border);
+            padding: 10px 18px;
+        }
+
+        .btn-secondary:hover {
+            background: var(--stat-bg);
+        }
+
+        .btn-accent {
+            background: var(--accent);
+            color: #ffffff;
         }
 
         .error {
@@ -122,11 +192,13 @@
             margin-top: 20px;
         }
 
-        .report {
+        .report,
+        .review {
             margin-top: 35px;
         }
 
-        .report h2 {
+        .report h2,
+        .review h2 {
             margin-bottom: 20px;
         }
 
@@ -143,15 +215,27 @@
             background: var(--stat-bg);
         }
 
+        .stat-warn {
+            border-color: var(--warn-border);
+            background: var(--warn-bg);
+        }
+
         .stat-number {
             font-size: 25px;
             font-weight: bold;
+        }
+
+        .stat-number .pct {
+            font-size: 15px;
+            color: var(--muted);
+            margin-left: 6px;
         }
 
         .stat-label {
             color: var(--muted);
             font-size: 14px;
             margin-top: 5px;
+            line-height: 1.4;
         }
 
         .cleaning-list {
@@ -172,6 +256,459 @@
 
         .download {
             margin-top: 25px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .lead {
+            line-height: 1.55;
+            margin-top: 0;
+        }
+
+        .muted {
+            color: var(--muted);
+        }
+
+        .small {
+            font-size: 13px;
+        }
+
+        /* ---- Missing-value review ---- */
+        .col-wrap {
+            max-height: 240px;
+            overflow-y: auto;
+            border: 1px solid var(--stat-border);
+            margin-bottom: 25px;
+        }
+
+        .col-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .col-table th,
+        .col-table td {
+            text-align: left;
+            padding: 9px 12px;
+            border-bottom: 1px solid var(--stat-border);
+        }
+
+        .col-table th {
+            background: var(--stat-bg);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: var(--muted);
+            position: sticky;
+            top: 0;
+        }
+
+        .col-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .bar-cell {
+            width: 35%;
+        }
+
+        .bar {
+            display: block;
+            height: 10px;
+            background: var(--stat-bg);
+            border: 1px solid var(--stat-border);
+        }
+
+        .bar span {
+            display: block;
+            height: 100%;
+            background: var(--warn-border);
+        }
+
+        .choices {
+            display: grid;
+            gap: 12px;
+            margin: 14px 0 6px;
+        }
+
+        .choice {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            border: 2px solid var(--stat-border);
+            padding: 16px;
+            cursor: pointer;
+            background: var(--card-bg);
+        }
+
+        .choice:hover {
+            border-color: var(--upload-border);
+        }
+
+        .choice:has(input:checked) {
+            border-color: var(--accent);
+            background: var(--stat-bg);
+        }
+
+        .choice:has(input:focus-visible) {
+            outline: 3px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        .choice.is-disabled {
+            opacity: 0.55;
+            cursor: not-allowed;
+        }
+
+        .choice input {
+            margin-top: 3px;
+            accent-color: var(--accent);
+        }
+
+        .choice-title {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .choice-desc {
+            display: block;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.45;
+        }
+
+        .hint {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.5;
+            margin: 8px 0;
+        }
+
+        .hint.is-bad {
+            color: var(--danger);
+            font-weight: bold;
+        }
+
+        .manual-panel {
+            margin-top: 22px;
+            border-top: 1px solid var(--stat-border);
+            padding-top: 20px;
+        }
+
+        .progress-row {
+            margin-bottom: 14px;
+            font-size: 14px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--stat-bg);
+            border: 1px solid var(--stat-border);
+            margin-top: 8px;
+        }
+
+        .progress-bar span {
+            display: block;
+            height: 100%;
+            width: 0;
+            background: var(--ok);
+            transition: width 0.2s;
+        }
+
+        .pager {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px;
+            margin: 12px 0;
+            font-size: 14px;
+        }
+
+        .pager .pager-label {
+            flex: 1;
+            text-align: center;
+            min-width: 120px;
+            color: var(--muted);
+        }
+
+        .pager button {
+            padding: 8px 14px;
+            font-size: 13px;
+        }
+
+        .rrow {
+            border: 1px solid var(--stat-border);
+            border-left: 5px solid var(--warn-border);
+            background: var(--stat-bg);
+            padding: 14px 16px;
+            margin-bottom: 12px;
+        }
+
+        .rrow.is-edit {
+            border-left-color: var(--accent);
+        }
+
+        .rrow.is-remove {
+            border-left-color: var(--danger);
+        }
+
+        .rrow.has-error {
+            outline: 2px solid var(--danger);
+        }
+
+        .rrow-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .rrow-title small {
+            display: block;
+            color: var(--muted);
+            margin-top: 3px;
+            font-size: 12px;
+        }
+
+        .seg {
+            display: inline-flex;
+            border: 2px solid var(--card-border);
+        }
+
+        .seg label {
+            position: relative;
+            cursor: pointer;
+            display: block;
+        }
+
+        .seg label + label {
+            border-left: 2px solid var(--card-border);
+        }
+
+        .seg input {
+            position: absolute;
+            opacity: 0;
+            inset: 0;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .seg .opt {
+            display: block;
+            padding: 7px 14px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .seg input:checked + .opt-edit {
+            background: var(--accent);
+            color: #ffffff;
+        }
+
+        .seg input:checked + .opt-remove {
+            background: var(--danger);
+            color: #ffffff;
+        }
+
+        .seg input:focus-visible + .opt {
+            outline: 3px solid var(--accent);
+            outline-offset: 2px;
+        }
+
+        .edit-fields {
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .rrow.is-edit .edit-fields {
+            display: grid;
+        }
+
+        .field .flabel {
+            display: block;
+            font-size: 12px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .field .flabel em {
+            font-weight: normal;
+            font-style: normal;
+            color: var(--muted);
+        }
+
+        .field input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid var(--upload-border);
+            background: var(--card-bg);
+            color: var(--text);
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .field input.invalid {
+            border-color: var(--danger);
+        }
+
+        .field-error,
+        .row-error {
+            display: block;
+            color: var(--danger);
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 4px;
+        }
+
+        .row-error:empty,
+        .field-error:empty {
+            display: none;
+        }
+
+        .remove-note {
+            display: none;
+            margin-top: 10px;
+            color: var(--danger);
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .rrow.is-remove .remove-note {
+            display: block;
+        }
+
+        .row-context {
+            margin-top: 12px;
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.8;
+        }
+
+        .row-context .ctx {
+            display: inline-block;
+            margin-right: 14px;
+        }
+
+        .row-context b {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 18px;
+            margin-top: 22px;
+            flex-wrap: wrap;
+        }
+
+        .actions a {
+            font-size: 14px;
+            color: var(--text);
+        }
+
+        /* ---- Confirmation dialog ---- */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: var(--overlay);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 100;
+        }
+
+        .modal {
+            background: var(--card-bg);
+            color: var(--text);
+            border: 2px solid var(--card-border);
+            box-shadow: 8px 8px 0 var(--card-shadow);
+            padding: 26px;
+            width: 100%;
+            max-width: 520px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal h3 {
+            margin-top: 0;
+        }
+
+        .modal ul {
+            padding-left: 20px;
+            line-height: 1.6;
+            margin: 10px 0;
+        }
+
+        .modal .edit-preview {
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--muted);
+            margin: 8px 0 14px;
+            padding: 8px 12px;
+            background: var(--stat-bg);
+            border: 1px solid var(--stat-border);
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        /* ---- Saved decisions on the report ---- */
+        .decision-box {
+            border: 1px solid var(--stat-border);
+            border-left: 5px solid var(--ok);
+            background: var(--stat-bg);
+            padding: 16px;
+            margin-bottom: 10px;
+        }
+
+        .decision-box p {
+            margin: 0 0 8px;
+            line-height: 1.5;
+        }
+
+        .decision-box .saved {
+            color: var(--ok);
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .decision-box details {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .decision-box summary {
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .edit-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+            font-size: 13px;
+        }
+
+        .edit-table th,
+        .edit-table td {
+            text-align: left;
+            padding: 6px 10px;
+            border-bottom: 1px solid var(--stat-border);
         }
 
         @media (max-width: 600px) {
@@ -180,7 +717,21 @@
             }
 
             .card {
-                padding: 25px;
+                padding: 22px;
+            }
+
+            .upload-box {
+                padding: 22px;
+            }
+
+            .actions,
+            .modal-actions {
+                justify-content: stretch;
+            }
+
+            .actions button,
+            .modal-actions button {
+                flex: 1;
             }
         }
     </style>
@@ -214,14 +765,23 @@
             Data Cleaning
         </p>
 
+        {% if review %}
+
+        <div class="file-line">
+            <strong>Cleaning:</strong> {{ uploaded_file_name }}
+        </div>
+
+        {% else %}
+
         <div class="upload-box">
 
             <strong>File ready to clean:</strong> {{ uploaded_file_name }}
 
             <br><br>
 
-            <form method="POST" style="display:inline;">
+            <form method="POST" style="display:inline;" onsubmit="var b=this.querySelector('button');b.disabled=true;b.textContent='Cleaning…';">
                 {% csrf_token %}
+                <input type="hidden" name="action" value="analyze">
                 <button type="submit">
                     Clean Data
                 </button>
@@ -233,12 +793,539 @@
 
         </div>
 
+        {% endif %}
+
 
         {% if error %}
 
             <div class="error">
                 {{ error }}
             </div>
+
+        {% endif %}
+
+
+        {% if review %}
+
+        <section class="review" aria-labelledby="mv-title">
+
+            <h2 id="mv-title">Missing values found</h2>
+
+            <p class="lead">
+                Some rows in this file have missing values. Nothing is filled in automatically:
+                you decide what happens to these rows, and nothing is changed until you confirm.
+            </p>
+
+            <div class="summary">
+
+                <div class="stat stat-warn">
+                    <div class="stat-number">{{ missing.rows_with_missing }}<span class="pct">{{ missing.rows_pct }}</span></div>
+                    <div class="stat-label">Rows with missing values (out of {{ missing.total_rows }} rows)</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-number">{{ missing.complete_rows }}</div>
+                    <div class="stat-label">Complete rows with nothing missing</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-number">{{ missing.cells_missing }}<span class="pct">{{ missing.cells_pct }}</span></div>
+                    <div class="stat-label">Missing cells (of all cells in the file)</div>
+                </div>
+
+                <div class="stat">
+                    <div class="stat-number">{{ missing.columns|length }}</div>
+                    <div class="stat-label">Columns affected (out of {{ missing.total_columns }})</div>
+                </div>
+
+            </div>
+
+            <h3>Where the gaps are</h3>
+
+            <div class="col-wrap">
+                <table class="col-table">
+                    <thead>
+                        <tr>
+                            <th>Column</th>
+                            <th>Missing</th>
+                            <th>Share of rows</th>
+                            <th aria-hidden="true"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in missing.columns %}
+                        <tr>
+                            <td>{{ c.name }}</td>
+                            <td>{{ c.count }}</td>
+                            <td>{{ c.pct }}</td>
+                            <td class="bar-cell"><span class="bar"><span style="width: {{ c.bar }}%"></span></span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <form method="post" id="mv-form" novalidate
+                  data-total="{{ missing.total_rows }}"
+                  data-missing="{{ missing.rows_with_missing }}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="apply">
+                <input type="hidden" name="confirmed" id="confirmed" value="">
+
+                {% if form_error %}
+                    <div class="error" id="form-error" role="alert" style="margin: 0 0 18px;">{{ form_error }}</div>
+                {% endif %}
+
+                <h3>How do you want to handle these rows?</h3>
+
+                <div class="choices" id="choices">
+
+                    <label class="choice">
+                        <input type="radio" name="strategy" value="remove_all" {% if strategy == 'remove_all' %}checked{% endif %}>
+                        <span class="choice-body">
+                            <span class="choice-title">Remove {{ missing.rows_with_missing }} row{{ missing.rows_with_missing|pluralize }} with missing values</span>
+                            <span class="choice-desc">
+                                Delete every row that has a missing value.
+                                The {{ missing.complete_rows }} complete row{{ missing.complete_rows|pluralize }} {{ missing.complete_rows|pluralize:"is,are" }} kept.
+                            </span>
+                        </span>
+                    </label>
+
+                    <label class="choice {% if not manual_allowed %}is-disabled{% endif %}">
+                        <input type="radio" name="strategy" value="manual" {% if strategy == 'manual' %}checked{% endif %} {% if not manual_allowed %}disabled{% endif %}>
+                        <span class="choice-body">
+                            <span class="choice-title">Review and edit manually</span>
+                            <span class="choice-desc">
+                                Go through the rows one by one. For each row, either type in the
+                                missing values yourself or remove that row.
+                            </span>
+                        </span>
+                    </label>
+
+                </div>
+
+                {% if not manual_allowed %}
+                    <p class="hint">
+                        Manual review is available for up to {{ manual_max }} rows at a time, and this file has
+                        {{ missing.rows_with_missing }}. Remove those rows, or fix the missing values in your
+                        source file and upload it again.
+                    </p>
+                {% endif %}
+
+                {% if manual_allowed %}
+                <div class="manual-panel" id="manual-panel" hidden>
+
+                    <div class="progress-row">
+                        <strong id="progress-text">0 of {{ missing.rows_with_missing }} rows decided</strong>
+                        <span class="muted" id="progress-detail"></span>
+                        <div class="progress-bar"><span id="progress-fill"></span></div>
+                    </div>
+
+                    <div class="pager" data-pager>
+                        <button type="button" class="btn-secondary" data-act="prev">&larr; Previous</button>
+                        <span class="pager-label"></span>
+                        <button type="button" class="btn-secondary" data-act="todo">Next unfinished row</button>
+                        <button type="button" class="btn-secondary" data-act="next">Next &rarr;</button>
+                    </div>
+
+                    <div id="rows-list">
+                        {% for row in review_rows %}
+                        <article class="rrow {% if row.error %}has-error{% endif %}" data-rid="{{ row.rid }}" data-label="{{ row.label }}">
+
+                            <div class="rrow-head">
+                                <div class="rrow-title">
+                                    <strong>Row {{ row.label }}</strong>
+                                    <small>Missing: {{ row.missing_names }}</small>
+                                </div>
+
+                                <div class="seg" role="radiogroup" aria-label="What to do with row {{ row.label }}">
+                                    <label>
+                                        <input type="radio" name="d_{{ row.rid }}" value="edit" {% if row.decision == 'edit' %}checked{% endif %}>
+                                        <span class="opt opt-edit">Edit</span>
+                                    </label>
+                                    <label>
+                                        <input type="radio" name="d_{{ row.rid }}" value="remove" {% if row.decision == 'remove' %}checked{% endif %}>
+                                        <span class="opt opt-remove">Remove row</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="edit-fields">
+                                {% for cell in row.missing %}
+                                <label class="field">
+                                    <span class="flabel">{{ cell.col }} <em>({{ cell.kind_label }})</em></span>
+                                    <input
+                                        type="{{ cell.input_type }}"
+                                        {% if cell.step %}step="{{ cell.step }}"{% endif %}
+                                        name="v_{{ row.rid }}_{{ cell.idx }}"
+                                        value="{{ cell.value }}"
+                                        data-col="{{ cell.col }}"
+                                        autocomplete="off"
+                                        {% if cell.input_type == 'text' %}maxlength="200"{% endif %}
+                                        {% if cell.error %}class="invalid"{% endif %}
+                                        aria-label="Row {{ row.label }}, {{ cell.col }}"
+                                    >
+                                    <small class="field-error">{{ cell.error }}</small>
+                                </label>
+                                {% endfor %}
+                            </div>
+
+                            <div class="remove-note">This row will be removed from the cleaned data.</div>
+
+                            <small class="row-error">{{ row.error }}</small>
+
+                            {% if row.context %}
+                            <div class="row-context">
+                                {% for c in row.context %}<span class="ctx"><b>{{ c.col }}:</b> {{ c.value }}</span>{% endfor %}
+                            </div>
+                            {% endif %}
+
+                        </article>
+                        {% endfor %}
+                    </div>
+
+                    <div class="pager" data-pager>
+                        <button type="button" class="btn-secondary" data-act="prev">&larr; Previous</button>
+                        <span class="pager-label"></span>
+                        <button type="button" class="btn-secondary" data-act="todo">Next unfinished row</button>
+                        <button type="button" class="btn-secondary" data-act="next">Next &rarr;</button>
+                    </div>
+
+                </div>
+                {% endif %}
+
+                <p class="hint" id="action-hint" role="alert"></p>
+
+                <noscript>
+                    <p class="hint is-bad">JavaScript is needed to review and confirm these choices.</p>
+                </noscript>
+
+                <div class="actions">
+                    <a href="{% url 'clean_data' %}">Cancel</a>
+                    <button type="button" id="review-btn">Review &amp; confirm</button>
+                </div>
+
+            </form>
+
+        </section>
+
+        <div class="modal-backdrop" id="confirm-modal" hidden>
+            <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+                <h3 id="modal-title">Confirm your choices</h3>
+                <div id="modal-body"></div>
+                <p class="muted small">
+                    These choices are applied to the cleaned dataset and saved. Visualize and the PDF
+                    report will use that dataset.
+                </p>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" id="modal-cancel">Go back</button>
+                    <button type="button" class="btn-accent" id="modal-confirm">Confirm &amp; apply</button>
+                </div>
+            </div>
+        </div>
+
+        <script>
+        (function () {
+            var form = document.getElementById('mv-form');
+            if (!form) { return; }
+
+            var PAGE_SIZE = 10;
+            var panel = document.getElementById('manual-panel');
+            var rows = Array.prototype.slice.call(form.querySelectorAll('.rrow'));
+            var strategyInputs = form.querySelectorAll('input[name="strategy"]');
+            var modal = document.getElementById('confirm-modal');
+            var modalBody = document.getElementById('modal-body');
+            var cancelBtn = document.getElementById('modal-cancel');
+            var confirmBtn = document.getElementById('modal-confirm');
+            var confirmedInput = document.getElementById('confirmed');
+            var hint = document.getElementById('action-hint');
+            var reviewBtn = document.getElementById('review-btn');
+            var totalRows = parseInt(form.getAttribute('data-total'), 10) || 0;
+            var missingRows = parseInt(form.getAttribute('data-missing'), 10) || 0;
+            var page = 0;
+            var lastFocus = null;
+
+            function plural(n, word) { return n + ' ' + word + (n === 1 ? '' : 's'); }
+
+            function strategy() {
+                var checked = form.querySelector('input[name="strategy"]:checked');
+                return checked ? checked.value : '';
+            }
+
+            function decisionOf(row) {
+                var checked = row.querySelector('input[type="radio"]:checked');
+                return checked ? checked.value : '';
+            }
+
+            function fieldsOf(row) {
+                return Array.prototype.slice.call(row.querySelectorAll('.edit-fields input'));
+            }
+
+            function fieldProblem(input) {
+                if (!(input.value || '').trim()) { return 'Enter a value.'; }
+                if (!input.checkValidity()) { return 'That is not a valid entry.'; }
+                return '';
+            }
+
+            function rowProblem(row) {
+                var d = decisionOf(row);
+                if (!d) { return 'Choose Edit or Remove for this row.'; }
+                if (d === 'edit') {
+                    var fields = fieldsOf(row);
+                    for (var i = 0; i < fields.length; i++) {
+                        if (fieldProblem(fields[i])) {
+                            return 'Fill in every missing value with a valid entry, or choose Remove row.';
+                        }
+                    }
+                }
+                return '';
+            }
+
+            function syncRow(row) {
+                var d = decisionOf(row);
+                row.classList.toggle('is-edit', d === 'edit');
+                row.classList.toggle('is-remove', d === 'remove');
+                fieldsOf(row).forEach(function (f) { f.disabled = (d !== 'edit'); });
+            }
+
+            function updateProgress() {
+                var decided = 0, edit = 0, remove = 0;
+                rows.forEach(function (r) {
+                    var d = decisionOf(r);
+                    if (d) { decided++; }
+                    if (d === 'edit') { edit++; }
+                    if (d === 'remove') { remove++; }
+                });
+                var text = document.getElementById('progress-text');
+                var detail = document.getElementById('progress-detail');
+                var fill = document.getElementById('progress-fill');
+                if (!text) { return; }
+                text.textContent = decided + ' of ' + plural(rows.length, 'row') + ' decided';
+                detail.textContent = decided ? ' (' + edit + ' to edit, ' + remove + ' to remove)' : '';
+                fill.style.width = (rows.length ? Math.round(100 * decided / rows.length) : 0) + '%';
+            }
+
+            function pageCount() { return Math.max(1, Math.ceil(rows.length / PAGE_SIZE)); }
+
+            function showPage(n) {
+                page = Math.min(Math.max(n, 0), pageCount() - 1);
+                rows.forEach(function (r, i) {
+                    r.hidden = !(i >= page * PAGE_SIZE && i < (page + 1) * PAGE_SIZE);
+                });
+                var first = page * PAGE_SIZE + 1;
+                var last = Math.min(rows.length, (page + 1) * PAGE_SIZE);
+                Array.prototype.forEach.call(form.querySelectorAll('[data-pager]'), function (pager) {
+                    pager.querySelector('.pager-label').textContent =
+                        'Rows ' + first + '–' + last + ' of ' + rows.length + ' (page ' + (page + 1) + ' of ' + pageCount() + ')';
+                    pager.querySelector('[data-act="prev"]').disabled = page === 0;
+                    pager.querySelector('[data-act="next"]').disabled = page >= pageCount() - 1;
+                });
+            }
+
+            function goToRow(index) {
+                showPage(Math.floor(index / PAGE_SIZE));
+                var row = rows[index];
+                if (row) {
+                    row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+
+            function firstUnfinished() {
+                for (var i = 0; i < rows.length; i++) {
+                    if (rowProblem(rows[i])) { return i; }
+                }
+                return -1;
+            }
+
+            function togglePanel() {
+                if (panel) { panel.hidden = strategy() !== 'manual'; }
+                hint.textContent = '';
+                hint.classList.remove('is-bad');
+            }
+
+            function setHint(text) {
+                hint.textContent = text;
+                hint.classList.toggle('is-bad', !!text);
+            }
+
+            function line(parent, tag, text) {
+                var el = document.createElement(tag);
+                el.textContent = text;
+                parent.appendChild(el);
+                return el;
+            }
+
+            function buildSummary(s) {
+                modalBody.textContent = '';
+                var list = document.createElement('ul');
+
+                if (s === 'remove_all') {
+                    line(list, 'li', 'Remove all ' + plural(missingRows, 'row') + ' that have missing values.');
+                    line(list, 'li', 'The cleaned data will have ' + (totalRows - missingRows) + ' rows.');
+                    modalBody.appendChild(list);
+                    return;
+                }
+
+                var removeN = 0, editRows = 0, editCells = 0, preview = [];
+                rows.forEach(function (r) {
+                    var d = decisionOf(r);
+                    if (d === 'remove') {
+                        removeN++;
+                    } else if (d === 'edit') {
+                        editRows++;
+                        fieldsOf(r).forEach(function (f) {
+                            editCells++;
+                            if (preview.length < 8) {
+                                preview.push('Row ' + r.getAttribute('data-label') + ' • ' +
+                                    f.getAttribute('data-col') + ' → ' + f.value.trim());
+                            }
+                        });
+                    }
+                });
+
+                if (removeN) { line(list, 'li', 'Remove ' + plural(removeN, 'row') + '.'); }
+                if (editRows) {
+                    line(list, 'li', 'Edit ' + plural(editRows, 'row') + ', using ' +
+                        plural(editCells, 'value') + ' you typed in.');
+                }
+                line(list, 'li', 'The cleaned data will have ' + (totalRows - removeN) + ' rows.');
+                modalBody.appendChild(list);
+
+                if (preview.length) {
+                    var box = document.createElement('div');
+                    box.className = 'edit-preview';
+                    preview.forEach(function (p) { line(box, 'div', p); });
+                    if (editCells > preview.length) {
+                        line(box, 'div', '…and ' + (editCells - preview.length) + ' more');
+                    }
+                    modalBody.appendChild(box);
+                }
+            }
+
+            function openModal(s) {
+                buildSummary(s);
+                lastFocus = document.activeElement;
+                modal.hidden = false;
+                document.body.classList.add('modal-open');
+                cancelBtn.focus();
+            }
+
+            function closeModal() {
+                modal.hidden = true;
+                document.body.classList.remove('modal-open');
+                if (lastFocus && lastFocus.focus) { lastFocus.focus(); }
+            }
+
+            function review() {
+                setHint('');
+                var s = strategy();
+                if (!s) {
+                    setHint('Choose how to handle the rows with missing values first.');
+                    document.getElementById('choices').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
+                if (s === 'manual') {
+                    var bad = 0, firstBad = -1;
+                    rows.forEach(function (r, i) {
+                        var problem = rowProblem(r);
+                        r.classList.toggle('has-error', !!problem);
+                        r.querySelector('.row-error').textContent = problem;
+                        fieldsOf(r).forEach(function (f) {
+                            f.classList.toggle('invalid', decisionOf(r) === 'edit' && !!fieldProblem(f));
+                        });
+                        if (problem) { bad++; if (firstBad < 0) { firstBad = i; } }
+                    });
+                    if (bad) {
+                        setHint(plural(bad, 'row') + ' still need a decision or a valid value.');
+                        goToRow(firstBad);
+                        return;
+                    }
+                }
+                openModal(s);
+            }
+
+            // ---- wiring ----
+            Array.prototype.forEach.call(strategyInputs, function (input) {
+                input.addEventListener('change', togglePanel);
+            });
+
+            rows.forEach(function (row) {
+                Array.prototype.forEach.call(row.querySelectorAll('input[type="radio"]'), function (radio) {
+                    radio.addEventListener('change', function () {
+                        syncRow(row);
+                        updateProgress();
+                        row.classList.remove('has-error');
+                        row.querySelector('.row-error').textContent = '';
+                    });
+                });
+                row.addEventListener('input', function (event) {
+                    var target = event.target;
+                    if (target && target.tagName === 'INPUT' && target.type !== 'radio') {
+                        target.classList.remove('invalid');
+                        var err = target.parentNode.querySelector('.field-error');
+                        if (err) { err.textContent = ''; }
+                        row.classList.remove('has-error');
+                        row.querySelector('.row-error').textContent = '';
+                    }
+                });
+            });
+
+            form.addEventListener('click', function (event) {
+                var btn = event.target.closest ? event.target.closest('[data-act]') : null;
+                if (!btn) { return; }
+                var act = btn.getAttribute('data-act');
+                if (act === 'prev') { showPage(page - 1); }
+                if (act === 'next') { showPage(page + 1); }
+                if (act === 'todo') {
+                    var i = firstUnfinished();
+                    if (i >= 0) { goToRow(i); } else { setHint('Every row has a decision. You can review and confirm now.'); hint.classList.remove('is-bad'); }
+                }
+            });
+
+            // Enter inside a field must never submit without the confirmation step.
+            form.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter' && event.target.tagName === 'INPUT' && event.target.type !== 'radio') {
+                    event.preventDefault();
+                }
+            });
+
+            reviewBtn.addEventListener('click', review);
+            cancelBtn.addEventListener('click', closeModal);
+            modal.addEventListener('click', function (event) {
+                if (event.target === modal) { closeModal(); }
+            });
+            confirmBtn.addEventListener('click', function () {
+                confirmBtn.disabled = true;
+                cancelBtn.disabled = true;
+                confirmBtn.textContent = 'Applying…';
+                confirmedInput.value = '1';
+                form.submit();
+            });
+            document.addEventListener('keydown', function (event) {
+                if (modal.hidden) { return; }
+                if (event.key === 'Escape') { closeModal(); }
+                if (event.key === 'Tab') {
+                    var order = [cancelBtn, confirmBtn];
+                    var at = order.indexOf(document.activeElement);
+                    event.preventDefault();
+                    order[(at + (event.shiftKey ? order.length - 1 : 1)) % order.length].focus();
+                }
+            });
+
+            // ---- initial state (also covers the page being re-shown after a server-side error) ----
+            rows.forEach(syncRow);
+            updateProgress();
+            togglePanel();
+            var firstError = -1;
+            rows.forEach(function (r, i) { if (firstError < 0 && r.classList.contains('has-error')) { firstError = i; } });
+            rows.forEach(function (r, i) {
+                if (firstError < 0 && r.querySelector('.field-error:not(:empty)')) { firstError = i; }
+            });
+            showPage(firstError >= 0 ? Math.floor(firstError / PAGE_SIZE) : 0);
+            var serverError = document.getElementById('form-error');
+            if (serverError) { serverError.scrollIntoView({ block: 'center' }); }
+        })();
+        </script>
 
         {% endif %}
 
@@ -305,6 +1392,54 @@
             </div>
 
 
+            {% if cleaning_actions and cleaning_actions.strategy != 'none' %}
+
+            <h3>Your Missing-Value Decisions</h3>
+
+            <div class="decision-box">
+
+                <p>
+                    <strong>{{ cleaning_actions.rows_with_missing }} row{{ cleaning_actions.rows_with_missing|pluralize }}</strong>
+                    ({{ cleaning_actions.rows_with_missing_pct }} of the data) had missing values.
+                    {{ cleaning_actions.summary }}
+                </p>
+
+                <p class="saved">&#10003; Saved. Visualize, the PDF report and the CSV download all use this cleaned data.</p>
+
+                {% if cleaning_actions.edits %}
+                <details>
+                    <summary>Values you typed in ({{ cleaning_actions.cells_edited }})</summary>
+                    <table class="edit-table">
+                        <thead>
+                            <tr><th>Row</th><th>Column</th><th>Value</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for edit in cleaning_actions.edits %}
+                            <tr><td>{{ edit.row }}</td><td>{{ edit.column }}</td><td>{{ edit.value }}</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% if cleaning_actions.cells_edited > cleaning_actions.edits|length %}
+                        <p class="muted small" style="margin-top: 8px;">Showing the first {{ cleaning_actions.edits|length }} of {{ cleaning_actions.cells_edited }}.</p>
+                    {% endif %}
+                </details>
+                {% endif %}
+
+                {% if cleaning_actions.removed_rows %}
+                <details>
+                    <summary>Rows removed ({{ cleaning_actions.rows_removed }})</summary>
+                    <p class="muted small" style="margin-top: 8px;">
+                        Row numbers in your original file:
+                        {% for n in cleaning_actions.removed_rows %}{{ n }}{% if not forloop.last %}, {% endif %}{% endfor %}{% if cleaning_actions.rows_removed > cleaning_actions.removed_rows|length %}, &hellip; ({{ cleaning_actions.rows_removed }} in total){% endif %}
+                    </p>
+                </details>
+                {% endif %}
+
+            </div>
+
+            {% endif %}
+
+
             <h3>What Cascade Cleaned</h3>
 
             <ul class="cleaning-list">
@@ -339,7 +1474,7 @@
                 <a
                     href="{% url 'visualize_data' %}"
                     class="download-btn"
-                    style="margin-left: 10px; background: #008cff;"
+                    style="background: #008cff;"
                 >
                     Proceed to Visualize &rarr;
                 </a>

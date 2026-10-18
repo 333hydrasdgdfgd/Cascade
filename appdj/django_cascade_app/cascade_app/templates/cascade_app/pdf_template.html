@@ -5,14 +5,23 @@
     <meta charset="UTF-8">
     <title>CASCADE Report - {{ file_name }}</title>
     <link rel="icon" type="image/png" href="{% static 'images/logo.png' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@400;700&family=Roboto+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         /* =========================================================
            GLOBAL & PAPER STYLING
            ========================================================= */
         * { box-sizing: border-box; }
-        
+
+        :root {
+            --font-body: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+            --font-serif: 'Playfair Display', 'Didot', 'Bodoni MT', Georgia, serif;
+            --font-mono: 'Roboto Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+        }
+
         body {
-            font-family: 'Helvetica Neue', Arial, sans-serif;
+            font-family: var(--font-body);
             color: #1a1a1a;
             background-color: #eef2f5;
             margin: 0;
@@ -47,7 +56,7 @@
 
         /* Document Wrapper */
         .document-container {
-            max-width: 8.5in;
+            max-width: 210mm; /* A4, the size of the cover design */
             margin: 30px auto;
             background: #ffffff;
             box-shadow: 0 10px 25px rgba(0,0,0,0.1);
@@ -55,85 +64,86 @@
 
         /* =========================================================
            1. COVER PAGE (MANDATORY PAGE 1)
+           The artwork (background, logo, title, labels) is one picture,
+           static/images/cover-template.svg. Only the three details that
+           change with every report are real text on top of it: the source
+           file, who prepared it and the export date. Their positions are
+           percentages of the page, so they follow the artwork at any size.
            ========================================================= */
         .cover-page {
-            height: 11in;
-            padding: 1in;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            background: #0d1117; /* Dark Cascade Background */
+            position: relative;
+            width: 100%;
+            height: 297mm;
+            overflow: hidden;
+            background: #060a12; /* shows only if the artwork file is missing */
             color: #ffffff;
             page-break-after: always;
             break-after: page;
-            position: relative;
         }
 
-        .cover-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+        .cover-art {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
-        .cover-badge {
-            font-family: monospace;
-            font-size: 12pt;
-            letter-spacing: 2px;
-            color: #38bdf8;
-            border: 1px solid #38bdf8;
-            padding: 4px 12px;
-            border-radius: 4px;
-            text-transform: uppercase;
-        }
-
-        .cover-main {
-            margin-top: auto;
-            margin-bottom: auto;
-        }
-
-        .cover-title {
-            font-size: 52pt;
-            font-weight: 900;
-            letter-spacing: 6px;
+        .cover-field {
+            position: absolute;
             margin: 0;
-            line-height: 1;
-            text-transform: uppercase;
-            color: #ffffff;
+            line-height: 1.25;
         }
 
-        .cover-subtitle {
-            font-size: 18pt;
-            font-weight: 300;
-            letter-spacing: 2px;
-            color: #94a3b8;
-            margin-top: 15px;
-            margin-bottom: 25px;
-            text-transform: uppercase;
+        /* SOURCE FILE value */
+        .cover-source {
+            left: 5.7%;
+            top: 71.84%;
+            max-width: 84%;
+            font-family: var(--font-mono);
+            font-weight: 600;
+            font-size: 15.7px;
+            color: #c7ced5;
+            overflow-wrap: anywhere;
         }
 
-        .cover-divider {
-            width: 80px;
-            height: 4px;
-            background: #38bdf8;
-            margin-bottom: 25px;
+        /* PREPARED BY value */
+        .cover-author {
+            left: 5.4%;
+            top: 94.02%;
+            max-width: 52%;
+            font-family: var(--font-body);
+            font-weight: 600;
+            font-size: 16.5px;
+            letter-spacing: -0.03em;
+            color: #bfc2c6;
         }
 
-        .cover-meta-tag {
-            font-size: 11pt;
-            letter-spacing: 1.5px;
-            color: #cbd5e1;
-            text-transform: uppercase;
+        /* EXPORTED value, right-aligned with the label above it */
+        .cover-date {
+            right: 5.7%;
+            top: 94.02%;
+            text-align: right;
+            font-family: var(--font-body);
+            font-weight: 600;
+            font-size: 16.5px;
+            letter-spacing: -0.025em;
+            color: #bfc2c6;
+            white-space: nowrap;
         }
 
-        .cover-footer {
-            border-top: 1px solid #334155;
-            padding-top: 20px;
-            display: flex;
-            justify-content: space-between;
-            font-size: 9pt;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+        /* the title is drawn in the artwork; this keeps it as real text for readers and copy/paste */
+        .cover-title-text {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+            padding: 0;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
         }
 
         /* =========================================================
@@ -150,10 +160,10 @@
         }
 
         .toc-heading {
-            font-size: 24pt;
-            font-weight: 900;
-            letter-spacing: 3px;
-            text-transform: uppercase;
+            font-family: var(--font-serif);
+            font-size: 30pt;
+            font-weight: 700;
+            letter-spacing: 0;
             color: #0f172a;
             margin: 0 0 8px 0;
         }
@@ -180,7 +190,7 @@
         }
 
         .toc-number {
-            font-family: monospace;
+            font-family: var(--font-mono);
             font-size: 10pt;
             color: #38bdf8;
             min-width: 28px;
@@ -222,11 +232,11 @@
         }
 
         .report-header-title {
-            font-size: 14pt;
-            font-weight: 800;
+            font-family: var(--font-serif);
+            font-size: 16pt;
+            font-weight: 700;
             color: #0f172a;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0;
             margin: 0;
         }
 
@@ -279,6 +289,15 @@
             color: #334155;
         }
 
+        .chart-recs {
+            margin-top: 10px;
+            background-color: #f0f9ff;
+            border-color: #bae6fd;
+        }
+        .chart-recs .insights-heading { color: #0369a1; }
+        .chart-recs p { margin: 0 0 6px 0; }
+        .chart-recs p:last-child { margin-bottom: 0; }
+
         .insights-heading {
             font-weight: 700;
             text-transform: uppercase;
@@ -287,12 +306,223 @@
             margin-bottom: 6px;
             letter-spacing: 0.5px;
         }
-        .cover-logo {
-            height: 100px;
-            width: auto;
-            max-width: 360px;
-            object-fit: contain;
+
+        /* =========================================================
+           SECTION HEADINGS, SUMMARY & RECOMMENDATIONS
+           ========================================================= */
+        .section-heading {
+            display: flex;
+            align-items: baseline;
+            gap: 14px;
+            border-bottom: 2px solid #0f172a;
+            padding-bottom: 8px;
+            margin: 0 0 18px 0;
         }
+
+        .section-heading, .section-intro, .sub-heading { break-after: avoid; page-break-after: avoid; }
+
+        .section-number {
+            font-family: var(--font-mono);
+            font-size: 10pt;
+            color: #64748b;
+        }
+
+        .section-heading h2 {
+            font-family: var(--font-serif);
+            font-size: 16pt;
+            font-weight: 700;
+            letter-spacing: 0;
+            color: #0f172a;
+            margin: 0;
+        }
+
+        .summary-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 22px 26px;
+            margin-bottom: 35px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+
+        .fact-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0;
+            border: 1px solid #e2e8f0;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .fact {
+            flex: 1 1 22%;
+            padding: 10px 14px;
+            border-right: 1px solid #e2e8f0;
+        }
+        .fact:last-child { border-right: none; }
+
+        .fact-label {
+            font-size: 7.5pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #64748b;
+            margin-bottom: 3px;
+        }
+
+        .fact-value {
+            font-size: 11pt;
+            font-weight: 600;
+            color: #0f172a;
+            word-break: break-word;
+        }
+
+        .prep-note {
+            font-size: 9.5pt;
+            line-height: 1.6;
+            color: #334155;
+            margin: 0 0 18px 0;
+        }
+
+        .sub-heading {
+            font-size: 8.5pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #64748b;
+            margin: 0 0 6px 0;
+        }
+
+        .summary-text {
+            font-size: 10pt;
+            line-height: 1.7;
+            color: #334155;
+            margin: 0;
+            text-align: justify;
+            text-justify: inter-word;
+            text-indent: 0.4in;
+            hyphens: auto;
+        }
+
+        .section-intro {
+            font-size: 10pt;
+            line-height: 1.6;
+            color: #475569;
+            margin: 0 0 6px 0;
+        }
+
+        .rec-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            counter-reset: rec;
+        }
+
+        .rec-item {
+            counter-increment: rec;
+            display: grid;
+            grid-template-columns: 34px 1fr;
+            column-gap: 10px;
+            padding: 14px 0;
+            border-bottom: 1px solid #e2e8f0;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        .rec-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+        .rec-item::before {
+            content: counter(rec, decimal-leading-zero);
+            font-family: var(--font-mono);
+            font-size: 10pt;
+            color: #64748b;
+            padding-top: 2px;
+        }
+
+        .rec-ref {
+            font-size: 10.5pt;
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .rec-subject {
+            font-size: 9.5pt;
+            font-weight: 400;
+            color: #64748b;
+        }
+        .rec-subject::before { content: "\2014\00a0"; }
+
+        .rec-body {
+            font-size: 10pt;
+            line-height: 1.65;
+            color: #334155;
+            margin-top: 4px;
+        }
+
+        /* =========================================================
+           KEY METRICS & PIVOT TABLE
+           ========================================================= */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .kpi-card {
+            border: 1px solid #e2e8f0;
+            border-left: 3px solid #38bdf8;
+            border-radius: 4px;
+            padding: 9px 12px;
+            background: #f8fafc;
+            page-break-inside: avoid;
+            break-inside: avoid;
+        }
+        .kpi-label {
+            font-size: 7.5pt;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: #64748b;
+        }
+        .kpi-value {
+            font-size: 15pt;
+            font-weight: 700;
+            color: #0f172a;
+            margin: 3px 0;
+            word-break: break-word;
+        }
+        .kpi-sub { font-size: 8pt; color: #64748b; }
+
+        table.pivot-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 8pt;
+            margin-bottom: 8px;
+        }
+        .pivot-table th, .pivot-table td {
+            border: 1px solid #e2e8f0;
+            padding: 4px 6px;
+            text-align: left;
+            word-break: normal;
+            overflow-wrap: break-word; /* a long word only breaks when it cannot fit at all */
+        }
+        .pivot-table th { background: #f1f5f9; color: #0f172a; font-weight: 700; }
+        .pivot-table thead { display: table-header-group; }
+        .pivot-table tfoot { display: table-row-group; }
+        .pivot-table tr { page-break-inside: avoid; break-inside: avoid; }
+        .pivot-table td.num, .pivot-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+        /* Inter is wider than the old system font: keep each number in one piece, and
+           step the text size down as a pivot gets more columns so it still fits the page. */
+        .pivot-table td.num { white-space: nowrap; }
+        .pivot-table.pivot-mid { font-size: 7pt; }
+        .pivot-table.pivot-dense { font-size: 6pt; }
+        .pivot-table.pivot-dense th, .pivot-table.pivot-dense td { overflow-wrap: anywhere; }
+        .pivot-table.pivot-dense td.num { white-space: normal; } /* very wide: let text wrap rather than run off the page */
+        .pivot-table td.rank { text-align: center; color: #64748b; width: 34px; }
+        .pivot-table th:first-child { white-space: nowrap; width: 38px; text-align: center; }
+        .pivot-table tfoot td { font-weight: 700; background: #f1f5f9; }
+        .pivot-note { font-size: 8pt; color: #64748b; margin: 2px 0; }
+        .pivot-notes-box { margin-top: 14px; page-break-inside: avoid; break-inside: avoid; }
+        .pivot-notes-box + .pivot-notes-box { margin-top: 10px; }
 
         /* =========================================================
            PRINT ENGINE OVERRIDES
@@ -304,7 +534,7 @@
             .cover-page { height: 100vh; }
             .content-container { min-height: 100vh; padding: 0.5in; border: none; }
             .toc-page { min-height: 100vh; padding: 0.5in; border: none; }
-            @page { size: letter portrait; margin: 0; }
+            @page { size: A4 portrait; margin: 0; }
         }
     </style>
 </head>
@@ -312,31 +542,20 @@
 
     <!-- Print Action Controls -->
     <div class="no-print">
-        <button onclick="window.print()" class="btn">🖨️ Save as PDF</button>
+        <button onclick="window.print()" class="btn">Save as PDF</button>
         <a href="{% url 'visualize_data' %}" class="btn btn-secondary">Back to Visualizer</a>
     </div>
 
     <div class="document-container">
         
-        <!-- PAGE 1: MANDATORY CASCADE COVER PAGE -->
+        <!-- PAGE 1: MANDATORY CASCADE COVER PAGE (artwork: static/images/cover-template.svg) -->
         <div class="cover-page">
-            <div class="cover-top">
-                <img src="{% static 'images/logo.png' %}" class="cover-logo" alt="Logo"
-                    onerror="this.style.display='none'">
-                <span class="cover-badge">001 Cascade</span>
-            </div>
-            
-            <div class="cover-main">
-                <h1 class="cover-title">CASCADE</h1>
-                <div class="cover-subtitle">Business Insights &amp; Analysis</div>
-                <div class="cover-divider"></div>
-                <div class="cover-meta-tag">File Intelligence Demo / {{ file_name }}</div>
-            </div>
-
-            <div class="cover-footer">
-                <div>Prepared By: <strong>{{ author_name|default:"Authenticated Analyst" }}</strong></div>
-                <div>Exported: {% now "F d, Y" %}</div>
-            </div>
+            <img src="{% static 'images/cover-template.svg' %}" class="cover-art" alt=""
+                onerror="this.style.display='none'">
+            <h1 class="cover-title-text">Business Insights &amp; Analysis</h1>
+            <div class="cover-field cover-source">{{ file_name }}</div>
+            <div class="cover-field cover-author">{{ author_name|default:"Authenticated Analyst" }}</div>
+            <div class="cover-field cover-date">{% now "F d, Y" %}</div>
         </div>
 
         <!-- PAGE 2: MANDATORY TABLE OF CONTENTS -->
@@ -347,18 +566,23 @@
             <ol class="toc-list">
                 <li class="toc-item">
                     <span class="toc-number">01</span>
-                    <span class="toc-label">Overall Data Summary</span>
+                    <span class="toc-label">Overall Data Summary &amp; Key Metrics</span>
                     <span class="toc-section-label">Overview</span>
                 </li>
-                {% for chart in charts %}
+                {% for block in blocks %}
                 <li class="toc-item">
-                    <span class="toc-number">{{ forloop.counter|add:1|stringformat:"02d" }}</span>
-                    <span class="toc-label">Visual #{{ forloop.counter }}: {{ chart.x_col }} vs {{ chart.y_col }}</span>
+                    <span class="toc-number">{{ block.position|add:1|stringformat:"02d" }}</span>
+                    {% if block.kind == 'pivot' %}
+                    <span class="toc-label">Pivot Table #{{ block.pivot.number }}: {{ block.pivot.title }}</span>
+                    <span class="toc-section-label">Pivot</span>
+                    {% else %}
+                    <span class="toc-label">Visual #{{ block.chart.number }}: {{ block.chart.display_title }}</span>
                     <span class="toc-section-label">Chart</span>
+                    {% endif %}
                 </li>
                 {% endfor %}
                 <li class="toc-item">
-                    <span class="toc-number">{{ charts|length|add:2|stringformat:"02d" }}</span>
+                    <span class="toc-number">{{ blocks|length|add:2|stringformat:"02d" }}</span>
                     <span class="toc-label">Recommendations</span>
                     <span class="toc-section-label">Summary</span>
                 </li>
@@ -378,57 +602,169 @@
                 </div>
             </div>
             <div class="summary-card">
-                <h2>Overall Data Summary</h2>
+                <div class="section-heading">
+                    <span class="section-number">01</span>
+                    <h2>Overall Data Summary &amp; Key Metrics</h2>
+                </div>
 
-                <p>
-                    <strong>Dataset:</strong> {{ file_name }}
+                <div class="fact-grid">
+                    <div class="fact">
+                        <div class="fact-label">Dataset</div>
+                        <div class="fact-value">{{ file_name }}</div>
+                    </div>
+                    <div class="fact">
+                        <div class="fact-label">Records</div>
+                        <div class="fact-value">{{ rows }}</div>
+                    </div>
+                    <div class="fact">
+                        <div class="fact-label">Columns</div>
+                        <div class="fact-value">{{ cols }}</div>
+                    </div>
+                    <div class="fact">
+                        <div class="fact-label">Charts</div>
+                        <div class="fact-value">{{ charts|length }}</div>
+                    </div>
+                </div>
+
+                {% if cleaning_actions %}
+                <div class="sub-heading">Data Preparation</div>
+                <p class="prep-note">
+                    {% if cleaning_actions.strategy != 'none' %}{{ cleaning_actions.rows_with_missing }} row{{ cleaning_actions.rows_with_missing|pluralize }} ({{ cleaning_actions.rows_with_missing_pct }} of the data) had missing values.{% endif %}
+                    {{ cleaning_actions.summary }}
                 </p>
+                {% endif %}
 
-                <p>
-                    <strong>Records:</strong> {{ rows }}
-                    &nbsp;&nbsp;
-                    <strong>Columns:</strong> {{ cols }}
-                    &nbsp;&nbsp;
-                    <strong>Charts:</strong> {{ charts|length }}
-                </p>
+                {% if kpis %}
+                <div class="sub-heading">Key Metrics</div>
+                <div class="kpi-grid">
+                    {% for kpi in kpis %}
+                        <div class="kpi-card">
+                            <div class="kpi-label">{{ kpi.label }}</div>
+                            <div class="kpi-value">{{ kpi.value }}</div>
+                            {% if kpi.sub %}<div class="kpi-sub">{{ kpi.sub }}{% if kpi.delta %} &middot; {{ kpi.delta }}{% endif %}</div>{% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
 
-                <h3>Overall Summary</h3>
-
-                <p style="text-align: justify;">
-                    {{ overall_summary }}
-                </p>
+                <div class="sub-heading">Summary</div>
+                <p class="summary-text">{{ overall_summary }}</p>
             </div>
-            <!-- Multi-Chart Output -->
-            {% for chart in charts %}
+            <!-- Charts and pivot tables, in the order chosen on the page -->
+            {% for block in blocks %}
+            {% if block.kind == 'pivot' %}
+            {% with p=block.pivot pivot=block.pivot.table %}
+            <div class="summary-card pivot-section">
+                <div class="section-heading">
+                    <span class="section-number">{{ block.position|add:1|stringformat:"02d" }}</span>
+                    <h2>Pivot Table #{{ p.number }}</h2>
+                </div>
+
+                <p class="section-intro">
+                    {{ pivot.value_label }} by {{ pivot.row_label }}{% if pivot.col_label %} &times; {{ pivot.col_label }}{% endif %}
+                </p>
+
+                <table class="pivot-table{% if pivot.columns|length >= 7 %} pivot-dense{% elif pivot.columns|length >= 4 %} pivot-mid{% endif %}">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>{{ pivot.row_label }}</th>
+                            {% for head in pivot.columns %}<th class="num">{{ head }}</th>{% endfor %}
+                            <th class="num">{% if pivot.col_label %}Total{% else %}{{ pivot.value_label }}{% endif %}</th>
+                            {% if pivot.has_share %}<th class="num">% of total</th>{% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for row in pivot.rows %}
+                            <tr>
+                                <td class="rank">{{ row.rank }}</td>
+                                <td>{{ row.label }}</td>
+                                {% for cell in row.cells %}<td class="num" style="{{ cell.style }}">{{ cell.text }}</td>{% endfor %}
+                                <td class="num" style="{{ row.style }}">{{ row.total }}</td>
+                                {% if pivot.has_share %}<td class="num">{{ row.share }}</td>{% endif %}
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td></td>
+                            <td>{{ pivot.totals.label }}</td>
+                            {% for cell in pivot.totals.cells %}<td class="num">{{ cell.text }}</td>{% endfor %}
+                            <td class="num">{{ pivot.totals.total }}</td>
+                            {% if pivot.has_share %}<td class="num">{{ pivot.totals.share }}</td>{% endif %}
+                        </tr>
+                    </tfoot>
+                </table>
+                {% for note in pivot.notes %}<div class="pivot-note">{{ note }}</div>{% endfor %}
+                <div class="pivot-note">{{ pivot.rank_note }}</div>
+
+                {% if p.insight %}
+                <div class="insights-box pivot-notes-box">
+                    <div class="insights-heading">Key Insight</div>
+                    <div>{{ p.insight|linebreaks }}</div>
+                </div>
+                {% endif %}
+                {% if p.recommendation %}
+                <div class="insights-box pivot-notes-box">
+                    <div class="insights-heading">Recommendation</div>
+                    <div>{{ p.recommendation|linebreaks }}</div>
+                </div>
+                {% endif %}
+            </div>
+            {% endwith %}
+            {% else %}
+            {% with chart=block.chart %}
                 <div class="chart-block">
-                    <div class="chart-title">Visual #{{ forloop.counter }}: {{ chart.x_col }} vs {{ chart.y_col }}</div>
+                    <div class="chart-title">Visual #{{ chart.number }}: {{ chart.display_title }}</div>
                     <div class="chart-image">
-                        <img src="{{ chart.image_uri }}" alt="Chart {{ forloop.counter }}">
+                        <img src="{{ chart.image_uri }}" alt="Chart {{ chart.number }}">
                     </div>
                     <div class="insights-box">
                         <div class="insights-heading">Key Insights &amp; Findings</div>
                         <div>{{ chart.insights_text|linebreaks }}</div>
                     </div>
+                    {% if chart.recommendation_items %}
+                    <div class="insights-box chart-recs">
+                        <div class="insights-heading">Recommendations</div>
+                        {% for item in chart.recommendation_items %}<p>{{ item.body }}</p>{% endfor %}
+                    </div>
+                    {% endif %}
                 </div>
+            {% endwith %}
+            {% endif %}
             {% endfor %}
-                <div class="summary-card recommendations-section">
 
+            <div class="summary-card recommendations-section">
+                <div class="section-heading">
+                    <span class="section-number">{{ blocks|length|add:2|stringformat:"02d" }}</span>
                     <h2>Recommendations</h2>
-
-                    <p>
-                        Based on the overall dataset analysis and the insights generated
-                        from the charts, the following recommendations are suggested:
-                    </p>
-
-                    <ol style="text-align: justify;">
-                        {% for recommendation in recommendations %}
-                            <li>{{ recommendation }}</li>
-                        {% empty %}
-                            <li>No specific recommendations were generated.</li>
-                        {% endfor %}
-                    </ol>
-
                 </div>
+
+                <p class="section-intro">
+                    Based on the overall dataset analysis and the insights drawn from
+                    each chart, the following actions are recommended.
+                </p>
+
+                <ol class="rec-list">
+                    {% for item in recommendation_items %}
+                        <li class="rec-item">
+                            <div class="rec-content">
+                                <div>
+                                    <span class="rec-ref">{{ item.ref }}</span>{% if item.subject %}
+                                    <span class="rec-subject">{{ item.subject }}</span>{% endif %}
+                                </div>
+                                <div class="rec-body">{{ item.body }}</div>
+                            </div>
+                        </li>
+                    {% empty %}
+                        <li class="rec-item">
+                            <div class="rec-content">
+                                <div class="rec-body">No specific recommendations were generated.</div>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ol>
+            </div>
         </div>
 
     </div>

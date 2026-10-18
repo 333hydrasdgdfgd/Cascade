@@ -88,6 +88,134 @@
 
         .chart-actions { display: flex; gap: 8px; align-items: center; }
 
+        /* Advanced: calculated Y value */
+        button.btn.calc-toggle.active,
+        button.btn.xcalc-toggle.active {
+            background: var(--primary);
+            color: var(--primary-text);
+            border-color: var(--primary);
+        }
+        .calc-panel,
+        .xcalc-panel {
+            border: var(--border-style);
+            border-radius: 8px;
+            padding: 12px 14px;
+            margin-bottom: 15px;
+            background: rgba(56, 189, 248, 0.05);
+        }
+        .calc-panel .form-row,
+        .xcalc-panel .form-row { margin-bottom: 10px; }
+        .calc-panel-title {
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+        .calc-preview,
+        .xcalc-preview { font-size: 13px; font-weight: bold; color: var(--primary); }
+        .calc-warning,
+        .xcalc-warning { font-size: 12px; color: #f59e0b; margin-top: 4px; }
+        .calc-note { font-size: 12px; opacity: 0.75; margin-bottom: 10px; }
+
+        /* ---- Cleaner chart controls ---- */
+        /* Row 1: the essentials (type, X, swap, Y, update) */
+        .form-row.chart-controls {
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 12px;
+        }
+        .form-group > label:first-child { min-height: 18px; line-height: 18px; }
+        .axis-field { display: flex; flex-direction: column; gap: 6px; }
+        .action-group { margin-left: auto; }
+        .action-group button.btn { height: 38px; padding: 0 22px; }
+
+        /* "fx Calculate" sits quietly under the dropdown it belongs to */
+        .calc-toggle-group { display: flex; }
+        .calc-chip {
+            background: none;
+            border: none;
+            padding: 0;
+            font-family: var(--font-family);
+            font-size: 12px;
+            font-weight: bold;
+            color: var(--primary);
+            cursor: pointer;
+            text-align: left;
+        }
+        .calc-chip:hover { text-decoration: underline; }
+        .calc-chip.active {
+            border: 1px solid var(--primary);
+            border-radius: 6px;
+            padding: 0 12px;
+            height: 38px;
+            line-height: 36px;
+            background: rgba(56, 189, 248, 0.12);
+            white-space: nowrap;
+        }
+        /* While calculating, the chip stands in for the hidden dropdown */
+        .axis-field.is-calc .calc-chip { margin-top: 24px; }
+
+        /* Row 2: date options, shown only when X is a date */
+        .options-row {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 16px;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+            border: 1px dashed var(--border-color);
+            border-radius: 8px;
+        }
+        .options-title {
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            align-self: center;
+        }
+
+        /* Card header: title + badge on the left, quiet actions on the right */
+        .chart-title-wrap { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .auto-badge {
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            border-radius: 999px;
+            padding: 2px 10px;
+        }
+        .chart-actions button.btn {
+            background: transparent;
+            border: var(--border-style);
+            color: var(--text-main);
+        }
+        .chart-actions button.btn:hover { border-color: var(--primary); }
+        .chart-actions button.btn-danger {
+            color: var(--danger);
+            border-color: var(--danger);
+        }
+        .chart-actions button.btn-danger:hover { background: var(--danger); color: #fff; }
+        .calc-check {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            height: 38px;
+            cursor: pointer;
+        }
+        input[type="number"] {
+            border: var(--border-style);
+            background: var(--bg-body);
+            color: var(--text-main);
+            font-family: var(--font-family);
+            border-radius: 6px;
+            padding: 8px 12px;
+            height: 38px;
+            width: 120px;
+            outline: none;
+        }
+        input[type="number"]:focus { border-color: var(--primary); }
+
         .axis-hint {
             display: none;
             align-items: center;
@@ -113,11 +241,22 @@
         }
         .swap-btn:hover { border-color: var(--primary); background: rgba(56, 189, 248, 0.1); }
 
+        /* Page background: your visualize background saved as static/images/visualize-bg.svg.
+           It stays the same in light and dark mode; only the cards on top follow the theme. */
+        html { background: #0b0d10; }
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background: url("{% static 'images/visualize-bg.svg' %}") center / cover no-repeat, #0b0d10;
+        }
+
         body { 
             font-family: var(--font-family); 
             margin: 0;
             padding: 30px 15px; 
-            background: var(--bg-body); 
+            background: transparent; 
             color: var(--text-main); 
             min-height: 100vh; 
             line-height: 1.5;
@@ -368,9 +507,205 @@
         font-weight: bold;
         text-transform: uppercase;
         }
+
+        /* ---- Dashboard tools: filters, KPI cards, sort & limit, pivot table ---- */
+        .section-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+        .section-head h3 { margin: 0; border-bottom: none; padding-bottom: 0; }
+        .row-count { font-size: 12px; color: var(--text-muted); }
+        .tag-custom { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; color: var(--success); margin-left: 6px; white-space: nowrap; }
+        .tag-custom[hidden] { display: none; }
+        .muted-note { font-size: 12px; color: var(--text-muted); margin: 6px 0; }
+
+        input[type="text"], input[type="date"] {
+            border: var(--border-style);
+            background: var(--bg-body);
+            color: var(--text-main);
+            font-family: var(--font-family);
+            border-radius: 6px;
+            padding: 8px 12px;
+            height: 38px;
+            outline: none;
+        }
+        input[type="text"]:focus, input[type="date"]:focus { border-color: var(--primary); }
+
+        .filter-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; align-items: center; }
+        .filter-chip {
+            display: inline-flex; align-items: center; gap: 4px;
+            border: 1px solid var(--primary); border-radius: 999px;
+            padding: 3px 4px 3px 12px; font-size: 12px;
+            background: rgba(56, 189, 248, 0.1);
+        }
+        .filter-chip form { margin: 0; display: inline-flex; }
+        .filter-chip button, .link-btn {
+            background: none; border: none; cursor: pointer;
+            color: var(--text-main); font-family: var(--font-family);
+        }
+        .filter-chip button { font-size: 15px; line-height: 1; padding: 0 6px; }
+        .filter-chip button:hover { color: var(--danger); }
+        .link-btn { font-size: 12px; font-weight: bold; color: var(--primary); text-decoration: underline; padding: 0; }
+        .choice-box {
+            max-height: 150px; overflow: auto; min-width: 230px;
+            border: var(--border-style); border-radius: 6px;
+            padding: 6px 10px; background: var(--bg-body);
+        }
+        .choice-box label { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-main); padding: 1px 0; }
+        .choice-tools { font-size: 11px; display: flex; gap: 10px; }
+
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; margin-bottom: 14px; }
+        .kpi-card {
+            position: relative; background: var(--bg-card);
+            border: var(--border-style); border-left: 4px solid var(--primary);
+            border-radius: 8px; padding: 14px 16px;
+        }
+        .kpi-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); padding-right: 18px; }
+        .kpi-value { font-size: 26px; font-weight: 700; line-height: 1.2; margin: 4px 0; word-break: break-word; }
+        .kpi-sub { font-size: 12px; color: var(--text-muted); }
+        .kpi-delta.up { color: var(--success); font-weight: bold; }
+        .kpi-delta.down { color: var(--danger); font-weight: bold; }
+        .kpi-remove-form { position: absolute; top: 4px; right: 6px; margin: 0; }
+        .kpi-remove-form button { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 16px; line-height: 1; }
+        .kpi-remove-form button:hover { color: var(--danger); }
+
+        .rank-row {
+            display: flex; flex-wrap: wrap; align-items: flex-end; gap: 16px;
+            padding: 10px 14px; margin-bottom: 12px;
+            border: 1px dashed var(--border-color); border-radius: 8px;
+        }
+        .rank-row .options-title { align-self: center; }
+
+        /* ---------- Light mode depth: layered shadows so cards lift off the page ---------- */
+        [data-theme="light"] {
+            --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.10), 0 2px 5px rgba(16, 24, 40, 0.08);
+            --shadow-md: 0 1px 2px rgba(16, 24, 40, 0.08), 0 4px 8px rgba(16, 24, 40, 0.08), 0 14px 28px -6px rgba(16, 24, 40, 0.20);
+            --shadow-lg: 0 4px 8px rgba(16, 24, 40, 0.06), 0 18px 44px rgba(16, 24, 40, 0.18);
+            --card-edge: #c9d0da;
+            --bg-card-inner: #ffffff;
+        }
+        [data-theme="light"] .container,
+        [data-theme="light"] .side-nav {
+            border-color: rgba(255, 255, 255, 0.6);
+            box-shadow: inset 0 1px 0 #ffffff,
+                        0 0 0 1px rgba(255, 255, 255, 0.10),
+                        0 2px 6px rgba(0, 0, 0, 0.5),
+                        0 26px 64px rgba(0, 0, 0, 0.6),
+                        0 0 90px rgba(150, 200, 255, 0.10);
+        }
+        /* sections inside the panel: raised, with a lit top edge and a firmer outline */
+        [data-theme="light"] .summary-card,
+        [data-theme="light"] .chart-card {
+            border-color: var(--card-edge);
+            box-shadow: inset 0 1px 0 #ffffff, var(--shadow-md);
+        }
+        [data-theme="light"] .kpi-card,
+        [data-theme="light"] .chart-container,
+        [data-theme="light"] .pivot-wrap,
+        [data-theme="light"] .chart-card .chart-container,
+        [data-theme="light"] .progress-notice,
+        [data-theme="light"] .cols-list,
+        [data-theme="light"] .choice-box {
+            border-color: var(--card-edge);
+            box-shadow: var(--shadow-sm);
+        }
+        [data-theme="light"] .kpi-card { transition: box-shadow 0.15s ease, transform 0.15s ease; }
+        [data-theme="light"] .kpi-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+        [data-theme="light"] select,
+        [data-theme="light"] textarea,
+        [data-theme="light"] input[type="text"],
+        [data-theme="light"] input[type="date"],
+        [data-theme="light"] input[type="number"] { background: var(--bg-card-inner); box-shadow: inset 0 1px 2px rgba(16, 24, 40, 0.06); }
+        [data-theme="light"] button.btn,
+        [data-theme="light"] a.btn { box-shadow: 0 1px 2px rgba(16, 24, 40, 0.14); }
+        [data-theme="light"] button.btn:hover,
+        [data-theme="light"] a.btn:hover { box-shadow: 0 3px 8px rgba(16, 24, 40, 0.18); }
+        [data-theme="light"] #theme-toggle,
+        [data-theme="light"] .swap-btn { background: var(--bg-card-inner); box-shadow: var(--shadow-sm); }
+        [data-theme="light"] .filter-chip { box-shadow: var(--shadow-sm); }
+
+        html { scroll-behavior: smooth; }
+        #overview, #filters, #pivot, #overall-summary, #recommendations, #kpis, #written-summary { scroll-margin-top: 20px; }
+
+        /* ---------- Side navigation (live table of contents) ---------- */
+        .page-layout { display: flex; align-items: flex-start; justify-content: center; gap: 20px; max-width: 1400px; margin: 0 auto; }
+        .page-layout .container { flex: 1 1 auto; min-width: 0; max-width: 1100px; margin: 0; }
+        .side-nav {
+            position: sticky; top: 20px; flex: 0 0 240px; width: 240px;
+            max-height: calc(100vh - 40px); overflow-y: auto;
+            background: var(--bg-card); border: var(--border-style); border-radius: 8px;
+            padding: 14px; box-shadow: 0 10px 25px var(--card-shadow);
+        }
+        .side-nav .nav-add { margin: 0 0 14px 0; }
+        .side-nav button.nav-add-btn { width: 100%; background: #10b981; font-size: 13px; padding: 10px 12px; }
+        .side-nav .nav-title, .side-nav .nav-group {
+            display: flex; align-items: center; justify-content: space-between;
+            margin: 12px 0 4px; padding: 0 8px;
+            font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-muted);
+        }
+        .side-nav .nav-title { margin-top: 0; }
+        .side-nav .nav-count, .side-nav .nav-badge {
+            font-size: 10px; border: var(--border-style); border-radius: 10px; padding: 0 7px; color: var(--primary); letter-spacing: 0;
+        }
+        .side-nav a.nav-link {
+            display: flex; align-items: baseline; gap: 8px;
+            padding: 6px 8px; margin: 1px 0; border-left: 2px solid transparent; border-radius: 4px;
+            color: var(--text-muted); text-decoration: none; font-size: 13px; line-height: 1.35;
+        }
+        .side-nav a.nav-link:hover { color: var(--text-main); background: var(--row-stripe); }
+        .side-nav a.nav-link.active { color: var(--primary); border-left-color: var(--primary); background: var(--row-stripe); font-weight: bold; }
+        .side-nav a.nav-sub { padding-left: 18px; font-size: 12px; }
+        .side-nav .nav-num { flex: 0 0 auto; min-width: 14px; font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+        .side-nav .nav-text { min-width: 0; display: flex; flex-direction: column; }
+        .side-nav .nav-text span:first-child { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+        .side-nav .nav-type { font-size: 10px; font-weight: normal; color: var(--text-muted); }
+        .side-nav a.nav-after-charts { margin-top: 10px; }
+        .side-nav .nav-add-pivot { margin-top: -6px; }
+        .side-nav button.nav-add-btn-alt { background: transparent; color: var(--primary); border: 1px solid var(--primary); }
+        .side-nav a.nav-block { cursor: grab; }
+        .side-nav a.nav-block .nav-text { flex: 1 1 auto; }
+        .side-nav .nav-grip { flex: 0 0 auto; align-self: center; font-size: 12px; letter-spacing: -2px; color: var(--text-muted); opacity: 0; transition: opacity 0.15s ease; }
+        .side-nav a.nav-block:hover .nav-grip { opacity: 0.8; }
+        .side-nav a.nav-block.dragging { opacity: 0.4; }
+        .side-nav a.nav-block.drop-before { box-shadow: 0 -2px 0 var(--primary); }
+        .side-nav a.nav-block.drop-after { box-shadow: 0 2px 0 var(--primary); }
+        .side-nav .nav-hint { margin: 4px 8px 0; font-size: 10px; color: var(--text-muted); }
+        .move-group { display: flex; gap: 4px; }
+        .chart-actions button.btn.move-btn { padding: 4px 8px; font-size: 10px; line-height: 1; min-width: 28px; }
+        .chart-actions button.btn.move-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+        .pivot-card .section-head { align-items: center; }
+        .pivot-card .chart-title-wrap { align-items: baseline; }
+        .side-nav .nav-foot { margin-top: 14px; padding-top: 12px; border-top: var(--border-style); }
+        .side-nav a.nav-save-btn { display: block; text-align: center; background: transparent; color: var(--primary); border: var(--border-style); font-size: 12px; padding: 8px 10px; margin-bottom: 8px; }
+        .progress-notice { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 20px 0; padding: 12px 16px; border: var(--border-style); border-left: 4px solid var(--success); border-radius: 6px; background: var(--bg-card); font-size: 13px; color: var(--text-main); }
+        .progress-notice button { background: transparent; border: none; color: var(--text-muted); font-size: 18px; line-height: 1; cursor: pointer; padding: 0 4px; }
+        .side-nav a.nav-pdf-btn { display: block; text-align: center; background: #4f46e5; color: #fff; border-color: #312e81; font-size: 12px; padding: 8px 10px; }
+        .fab-bar, .nav-backdrop { display: none; }
+        @media (max-width: 1100px) {
+            .page-layout { display: block; }
+            .side-nav {
+                position: fixed; top: 0; left: 0; bottom: 0; max-height: none; width: 270px; max-width: 85vw;
+                border-radius: 0 8px 8px 0; z-index: 60; transform: translateX(-105%); transition: transform 0.2s ease;
+            }
+            .side-nav.open { transform: translateX(0); }
+            .nav-backdrop.show { display: block; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.45); z-index: 55; }
+            .fab-bar { display: flex; gap: 8px; position: fixed; right: 14px; bottom: 14px; z-index: 50; }
+            .fab-bar form { margin: 0; }
+            .fab-bar button { box-shadow: 0 4px 12px var(--card-shadow); }
+        }
+        .kpi-block { margin: 4px 0 20px 0; scroll-margin-top: 20px; }
+        .kpi-block-title { margin: 0 0 12px 0; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+        .pivot-notes { margin-top: 16px; padding-top: 14px; border-top: var(--border-style); scroll-margin-top: 20px; }
+        .pivot-notes .note-label { display: block; margin: 0 0 5px; font-size: 12px; font-weight: bold; text-transform: uppercase; }
+        .pivot-notes textarea { width: 100%; padding: 10px; margin-bottom: 12px; }
+        .pivot-caption { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+        .pivot-wrap { overflow: auto; max-height: 540px; border: var(--border-style); border-radius: 6px; background: var(--bg-card); }
+        table.pivot-table { border-collapse: collapse; width: 100%; font-size: 12px; color: var(--text-main); }
+        .pivot-table th, .pivot-table td { border: 1px solid var(--border-color); padding: 7px 10px; white-space: nowrap; text-align: left; }
+        .pivot-table th { background: var(--bg-body); color: var(--primary); position: sticky; top: 0; z-index: 1; }
+        .pivot-table td.num, .pivot-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
+        .pivot-table td.rank { text-align: center; color: var(--text-muted); width: 56px; }
+        .pivot-table tfoot td { font-weight: bold; background: var(--bg-body); position: sticky; bottom: 0; }
     </style>
 </head>
-<body>
+<body data-has-custom="{% if has_custom_text %}1{% else %}0{% endif %}">
     <script>
         (function () {
             var stored = localStorage.getItem('cascade-theme');
@@ -384,21 +719,92 @@
             localStorage.setItem('cascade-theme', next);
         }
     </script>
+    <div class="page-layout">
+    <nav class="side-nav" id="side-nav" aria-label="Page contents">
+        <form method="POST" class="nav-add"{% if summary_is_custom or recommendations_is_custom %} onsubmit="return confirm('Adding a chart will reset your custom Overall Summary / Recommendations to auto-generated. Continue?');"{% endif %}>
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_chart">
+            <button type="submit" class="btn nav-add-btn">+ Add Chart</button>
+        </form>
+        <form method="POST" class="nav-add nav-add-pivot">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_pivot">
+            <button type="submit" class="btn nav-add-btn nav-add-btn-alt">+ Add Pivot Table</button>
+        </form>
+
+        <div class="nav-title">Contents</div>
+        <a class="nav-link" href="#overview" data-target="overview">File Overview</a>
+        <a class="nav-link" href="#overall-summary" data-target="overall-summary">Overall Summary</a>
+        <a class="nav-link nav-sub" href="#kpis" data-target="kpis">Key Metrics</a>
+        <a class="nav-link nav-sub" href="#written-summary" data-target="written-summary">Written Summary</a>
+        <a class="nav-link" href="#filters" data-target="filters">Filters{% if filters_active %} <span class="nav-badge">on</span>{% endif %}</a>
+
+        <div class="nav-group"><span>Charts &amp; Pivots</span><span class="nav-count">{{ blocks|length }}</span></div>
+        <div id="nav-blocks">
+        {% for block in blocks %}
+            {% if block.kind == 'pivot' %}
+            <a class="nav-link nav-sub nav-block" draggable="true" data-token="{{ block.token }}" href="#pivot-{{ block.pivot.index }}" data-target="pivot-{{ block.pivot.index }}" title="Pivot Table #{{ block.pivot.number }}: {{ block.pivot.title }}">
+                <span class="nav-num">{{ block.position }}</span>
+                <span class="nav-text"><span>{{ block.pivot.title }}</span><span class="nav-type">Pivot Table</span></span>
+                <span class="nav-grip" aria-hidden="true">&#8942;&#8942;</span>
+            </a>
+            {% else %}
+            <a class="nav-link nav-sub nav-block" draggable="true" data-token="{{ block.token }}" href="#chart-{{ block.chart.index }}" data-target="chart-{{ block.chart.index }}" title="Chart #{{ block.chart.number }}: {{ block.chart.display_title }}">
+                <span class="nav-num">{{ block.position }}</span>
+                <span class="nav-text"><span>{{ block.chart.display_title }}</span><span class="nav-type">{{ block.chart.type_label }}</span></span>
+                <span class="nav-grip" aria-hidden="true">&#8942;&#8942;</span>
+            </a>
+            {% endif %}
+        {% endfor %}
+        </div>
+        {% if blocks|length > 1 %}<div class="nav-hint">Drag to rearrange, or use the &#9650; &#9660; buttons on each block.</div>{% endif %}
+        <form method="POST" id="layout-form" style="display: none;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="set_layout">
+            <input type="hidden" name="order" value="">
+            <input type="hidden" name="moved" value="">
+        </form>
+
+        <a class="nav-link nav-after-charts" href="#recommendations" data-target="recommendations">Recommendations</a>
+
+        <div class="nav-foot">
+            <a href="{% url 'visualize_data' %}?download=progress" class="btn nav-save-btn" title="Download a file with your charts, saved notes, pivots and data so you can continue later">Save Progress</a>
+            <a href="{% url 'export_pdf' %}" class="btn nav-pdf-btn">Download PDF</a>
+        </div>
+    </nav>
+    <div class="nav-backdrop" id="nav-backdrop" onclick="toggleNav(false)"></div>
+
     <div class="container">
         <div class="header">
             <h1>Data Visualizer</h1>
-            <div style="display: flex; gap: 10px;">
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
                 <button type="button" id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">☼</button>
                 <!-- Added Export PDF Button -->
                 <a href="{% url 'export_pdf' %}" class="btn" style="background: #4f46e5; color: white; border-color: #312e81;">Download PDF</a>
-                
+
+                <!-- Save the work so far to a file, and load a saved file back in -->
+                <a href="{% url 'visualize_data' %}?download=progress" class="btn btn-outline" title="Download a file with your charts, saved notes, pivots and data so you can continue later">Save Progress</a>
+                <a href="#" class="btn btn-outline" role="button" onclick="return startProgressImport(event);" title="Load a progress file you saved earlier">Import Progress</a>
+
                 <a href="{% url 'upload_csv' %}" class="btn btn-outline">Upload New File</a>
             </div>
         </div>
+
+        <form id="progress-import-form" method="POST" action="{% url 'upload_csv' %}" enctype="multipart/form-data" style="display: none;">
+            {% csrf_token %}
+            <input type="file" id="progress-import-file" name="progress_file" accept=".cascade">
+        </form>
+
+        {% if progress_notice %}
+        <div class="progress-notice" id="progress-notice" role="status">
+            <span>{{ progress_notice }}</span>
+            <button type="button" aria-label="Dismiss" onclick="document.getElementById('progress-notice').remove();">&times;</button>
+        </div>
+        {% endif %}
         
 
         <!-- File Summary Description Card with Collapsible Preview -->
-        <div class="summary-card">
+        <div class="summary-card" id="overview">
             <h3>File Overview</h3>
             <div class="stats-grid">
                 <div>Author: <u>{{ author_name }}</u></div>
@@ -409,6 +815,14 @@
             <div class="cols-list">
                 <strong>Detected Columns:</strong> {{ column_names|join:", " }}
             </div>
+            {% if cleaning_actions %}
+            <div class="cols-list" id="cleaning-actions" style="margin-top: 10px; word-break: normal;">
+                <strong>Data Cleaning:</strong>
+                {% if cleaning_actions.strategy != 'none' %}{{ cleaning_actions.rows_with_missing }} row{{ cleaning_actions.rows_with_missing|pluralize }} ({{ cleaning_actions.rows_with_missing_pct }} of the data) had missing values.{% endif %}
+                {{ cleaning_actions.summary }}
+                These choices are already part of the data shown below.
+            </div>
+            {% endif %}
 
             <!-- Preview Toggle Button -->
             {% if preview_html %}
@@ -424,12 +838,370 @@
             {% endif %}
         </div>
 
-        <!-- Rendered Multi-Chart List -->
-        {% for chart in rendered_charts %}
+
+        <!-- Overall Summary -->
+        <div class="summary-card" id="overall-summary">
+            <div class="chart-card-header" style="border-bottom: none; margin-bottom: 10px; padding-bottom: 0;">
+                <h3 style="margin: 0; border-bottom: none; padding-bottom: 0;">Overall Summary</h3>
+            </div>
+
+        <!-- Key Metrics (part of the Overall Summary) -->
+        <div class="kpi-block" id="kpis">
+            <div class="section-head">
+                <h4 class="kpi-block-title">Key Metrics</h4>
+                {% if kpi_is_custom %}<span class="tag-custom">Custom</span>{% endif %}
+            </div>
+
+            {% if kpis %}
+                <div class="kpi-grid">
+                    {% for kpi in kpis %}
+                        <div class="kpi-card">
+                            <form method="POST" class="kpi-remove-form"{% if summary_is_custom %} onsubmit="return confirm('Changing the Key Metrics will reset your custom written summary to auto-generated. Continue?');"{% endif %}>
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="remove_kpi">
+                                <input type="hidden" name="kpi_index" value="{{ kpi.index }}">
+                                <button type="submit" title="Remove this card" aria-label="Remove KPI card">&times;</button>
+                            </form>
+                            <div class="kpi-label">{{ kpi.label }}</div>
+                            <div class="kpi-value" title="{{ kpi.full }}">{{ kpi.value }}</div>
+                            {% if kpi.sub %}
+                                <div class="kpi-sub">{{ kpi.sub }}{% if kpi.delta %} &middot; <span class="kpi-delta {{ kpi.delta_class }}">{{ kpi.delta }}</span>{% endif %}</div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="muted-note">No KPI cards yet. Add one below.</div>
+            {% endif %}
+
+            <form method="POST" id="kpi-form"{% if summary_is_custom %} onsubmit="return confirm('Changing the Key Metrics will reset your custom written summary to auto-generated. Continue?');"{% endif %}>
+                {% csrf_token %}
+                <div class="form-row" style="margin-bottom: 0;">
+                    <div class="form-group">
+                        <label>Add a card for</label>
+                        <select name="kpi_col" onchange="updateKpiAggs()">
+                            <option value="{{ records_col }}">Number of records</option>
+                            {% for col in column_names %}<option value="{{ col }}">{{ col }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group kpi-agg-group">
+                        <label>Calculation</label>
+                        <select name="kpi_agg">
+                            {% for key, label in kpi_aggs %}<option value="{{ key }}">{{ label }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button type="submit" name="action" value="add_kpi" class="btn">Add Card</button>
+                    </div>
+                    {% if kpi_is_custom %}
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button type="submit" name="action" value="reset_kpis" class="btn btn-secondary">Reset to auto</button>
+                        </div>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                <label id="written-summary" style="margin-bottom: 5px; display: block; font-size: 12px; font-weight: bold; text-transform: uppercase;">Written Summary <span class="tag-custom" data-watch="overall_summary_text" data-saved="{{ summary_is_custom|yesno:'1,0' }}"{% if not summary_is_custom %} hidden{% endif %}>Custom</span></label>
+                <textarea name="overall_summary_text" rows="4" style="width: 100%; padding: 10px;">{{ overall_summary }}</textarea>
+                <div style="margin-top: 8px; display: flex; gap: 8px;">
+                    <button type="submit" name="action" value="save_summary" class="btn" style="font-size: 12px;">Save Summary</button>
+                    {% if summary_is_custom %}
+                        <button type="submit" name="action" value="reset_summary" class="btn btn-outline" style="font-size: 12px;">Reset to Auto-Generated</button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <!-- Filters -->
+        <div class="summary-card" id="filters">
+            <div class="section-head">
+                <h3>Filters</h3>
+                <span class="row-count">Showing {{ rows_shown }} of {{ rows_total }} rows</span>
+            </div>
+
+            {% if filter_chips %}
+                <div class="filter-chips">
+                    {% for chip in filter_chips %}
+                        <span class="filter-chip">{{ chip.label }}
+                            <form method="POST" onsubmit="return confirmFilterChange()">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="remove_filter">
+                                <input type="hidden" name="filter_index" value="{{ chip.index }}">
+                                <button type="submit" title="Remove this filter" aria-label="Remove filter">&times;</button>
+                            </form>
+                        </span>
+                    {% endfor %}
+                    <form method="POST" style="margin: 0;" onsubmit="return confirmFilterChange()">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="clear_filters">
+                        <button type="submit" class="link-btn">Clear all</button>
+                    </form>
+                </div>
+            {% endif %}
+
+            <form method="POST" id="filter-form" onsubmit="return validateFilterForm(this)">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_filter">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Column</label>
+                        <select name="filter_col" onchange="updateFilterInputs()">
+                            {% for col in column_names %}<option value="{{ col }}">{{ col }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group f-number" style="display: none;">
+                        <label>Min</label>
+                        <input type="number" name="filter_min_num" step="any">
+                    </div>
+                    <div class="form-group f-number" style="display: none;">
+                        <label>Max</label>
+                        <input type="number" name="filter_max_num" step="any">
+                    </div>
+                    <div class="form-group f-date" style="display: none;">
+                        <label>From</label>
+                        <input type="date" name="filter_min_date">
+                    </div>
+                    <div class="form-group f-date" style="display: none;">
+                        <label>To</label>
+                        <input type="date" name="filter_max_date">
+                    </div>
+                    <div class="form-group f-choices" style="display: none;">
+                        <label>Keep rows where the value is one of</label>
+                        <div class="choice-box"></div>
+                        <div class="choice-tools">
+                            <button type="button" class="link-btn" onclick="setAllChoices(true)">Select all</button>
+                            <button type="button" class="link-btn" onclick="setAllChoices(false)">None</button>
+                        </div>
+                    </div>
+                    <div class="form-group f-text" style="display: none;">
+                        <label>Value contains</label>
+                        <input type="text" name="filter_text" placeholder="type to match">
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button type="submit" class="btn">Add Filter</button>
+                    </div>
+                </div>
+            </form>
+            <div class="muted-note">Filters apply to the KPI cards, every chart, every pivot table and the PDF. Adding a filter on a column that already has one replaces it.</div>
+        </div>
+
+        <!-- Charts and pivot tables, in the order chosen -->
+        {% for block in blocks %}
+        {% if block.kind == 'pivot' %}
+        {% with p=block.pivot pivot=block.pivot.table pivot_cfg=block.pivot.cfg %}
+        <div class="summary-card pivot-card" id="pivot-{{ p.index }}">
+            <div class="section-head">
+                <div class="chart-title-wrap">
+                    <h3>Pivot Table #{{ p.number }}</h3>
+                    <span class="row-count">Uses the filtered rows ({{ rows_shown }} of {{ rows_total }})</span>
+                </div>
+                <div class="chart-actions">
+                    <div class="move-group">
+                            <form method="POST" style="margin: 0;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="move_block">
+                                <input type="hidden" name="block" value="{{ block.token }}">
+                                <input type="hidden" name="direction" value="up">
+                                <button type="submit" class="btn btn-secondary move-btn" title="Move up" aria-label="Move up"{% if block.is_first %} disabled{% endif %}>&#9650;</button>
+                            </form>
+                            <form method="POST" style="margin: 0;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="move_block">
+                                <input type="hidden" name="block" value="{{ block.token }}">
+                                <input type="hidden" name="direction" value="down">
+                                <button type="submit" class="btn btn-secondary move-btn" title="Move down" aria-label="Move down"{% if block.is_last %} disabled{% endif %}>&#9660;</button>
+                            </form>
+                        </div>
+                    <form method="POST" style="margin: 0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="duplicate_pivot">
+                        <input type="hidden" name="pivot_index" value="{{ p.index }}">
+                        <button type="submit" class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" title="Copy these settings so you can build a companion table">Duplicate Pivot</button>
+                    </form>
+                    <form method="POST" style="margin: 0;" onsubmit="return confirm('Remove Pivot Table #{{ p.number }}? Its saved insight and recommendation will be deleted.');">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="remove_pivot">
+                        <input type="hidden" name="pivot_index" value="{{ p.index }}">
+                        <button type="submit" class="btn btn-danger" style="padding: 4px 10px; font-size: 11px;">Remove Pivot</button>
+                    </form>
+                </div>
+            </div>
+
+            <form method="POST" class="pivot-form" id="pivot-form-{{ p.index }}">
+                {% csrf_token %}
+                <input type="hidden" name="pivot_index" value="{{ p.index }}">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Rows</label>
+                        <select name="pv_rows" onchange="updatePivotControls(this.closest('form'))">
+                            {% for col in column_names %}<option value="{{ col }}" {% if pivot_cfg.rows == col %}selected{% endif %}>{{ col }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Columns (optional)</label>
+                        <select name="pv_cols" onchange="updatePivotControls(this.closest('form'))">
+                            <option value="">(none)</option>
+                            {% for col in column_names %}<option value="{{ col }}" {% if pivot_cfg.cols == col %}selected{% endif %}>{{ col }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Values</label>
+                        <select name="pv_values" onchange="updatePivotControls(this.closest('form'))">
+                            <option value="{{ records_col }}" {% if pivot_cfg.values == records_col %}selected{% endif %}>Number of records</option>
+                            {% for col in column_names %}<option value="{{ col }}" {% if pivot_cfg.values == col %}selected{% endif %}>{{ col }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group pv-agg-group">
+                        <label>Calculation</label>
+                        <select name="pv_agg">
+                            {% for key, label in pivot_aggs %}<option value="{{ key }}" {% if pivot_cfg.agg == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group pv-period-group" style="display: none;">
+                        <label>Group dates by</label>
+                        <select name="pv_period">
+                            {% for key, label in time_periods %}<option value="{{ key }}" {% if pivot_cfg.period == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Show</label>
+                        <select name="pv_topn" onchange="updatePivotControls(this.closest('form'))">
+                            {% for key, label in topn_modes %}<option value="{{ key }}" {% if pivot_cfg.topn == key %}selected{% endif %}>{{ label }}{% if key != 'all' %} rows{% endif %}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group pv-n-group" style="display: none;">
+                        <label>N</label>
+                        <input type="number" name="pv_n" min="1" max="{{ max_top_n }}" value="{{ pivot_cfg.n }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Sort rows by</label>
+                        <select name="pv_sort">
+                            {% for key, label in pivot_sorts %}<option value="{{ key }}" {% if pivot_cfg.sort == key %}selected{% endif %}>{{ label }}</option>{% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Order</label>
+                        <select name="pv_direction">
+                            <option value="desc" {% if pivot_cfg.direction == 'desc' %}selected{% endif %}>High to low / Z to A</option>
+                            <option value="asc" {% if pivot_cfg.direction == 'asc' %}selected{% endif %}>Low to high / A to Z</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button type="submit" name="action" value="update_pivot" class="btn">Update Pivot</button>
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button type="submit" name="action" value="reset_pivot" class="btn btn-secondary">Reset</button>
+                    </div>
+                    {% if not pivot.error %}
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <a href="?download=pivot&amp;i={{ p.index }}" class="btn btn-outline">Download CSV</a>
+                        </div>
+                    {% endif %}
+                </div>
+            </form>
+
+            {% if pivot.error %}
+                <div class="muted-note">{{ pivot.error }}</div>
+            {% else %}
+                <div class="pivot-caption">
+                    {{ pivot.value_label }} by {{ pivot.row_label }}{% if pivot.col_label %} &times; {{ pivot.col_label }}{% endif %}
+                </div>
+                <div class="pivot-wrap">
+                    <table class="pivot-table">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>{{ pivot.row_label }}</th>
+                                {% for head in pivot.columns %}<th class="num">{{ head }}</th>{% endfor %}
+                                <th class="num">{% if pivot.col_label %}Total{% else %}{{ pivot.value_label }}{% endif %}</th>
+                                {% if pivot.has_share %}<th class="num">% of total</th>{% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in pivot.rows %}
+                                <tr>
+                                    <td class="rank">{{ row.rank }}</td>
+                                    <td>{{ row.label }}</td>
+                                    {% for cell in row.cells %}<td class="num" style="{{ cell.style }}">{{ cell.text }}</td>{% endfor %}
+                                    <td class="num" style="{{ row.style }}">{{ row.total }}</td>
+                                    {% if pivot.has_share %}<td class="num">{{ row.share }}</td>{% endif %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td></td>
+                                <td>{{ pivot.totals.label }}</td>
+                                {% for cell in pivot.totals.cells %}<td class="num">{{ cell.text }}</td>{% endfor %}
+                                <td class="num">{{ pivot.totals.total }}</td>
+                                {% if pivot.has_share %}<td class="num">{{ pivot.totals.share }}</td>{% endif %}
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+                {% for note in pivot.notes %}<div class="muted-note">{{ note }}</div>{% endfor %}
+                <div class="muted-note">{{ pivot.rank_note }}</div>
+
+                <div class="pivot-notes" id="pivot-notes-{{ p.index }}">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="pivot_index" value="{{ p.index }}">
+                        <label class="note-label">Key Insight <span class="tag-custom" data-watch="pivot_insight_text" data-saved="{{ p.insight_is_custom|yesno:'1,0' }}"{% if not p.insight_is_custom %} hidden{% endif %}>Custom</span></label>
+                        <textarea name="pivot_insight_text" rows="3">{{ p.insight }}</textarea>
+
+                        <label class="note-label">Recommendation <span class="tag-custom" data-watch="pivot_recommendation_text" data-saved="{{ p.recommendation_is_custom|yesno:'1,0' }}"{% if not p.recommendation_is_custom %} hidden{% endif %}>Custom</span></label>
+                        <textarea name="pivot_recommendation_text" rows="3">{{ p.recommendation }}</textarea>
+
+                        <div style="display: flex; gap: 8px;">
+                            <button type="submit" name="action" value="save_pivot_text" class="btn" style="font-size: 12px;">Save Pivot Insight &amp; Recommendation</button>
+                            {% if p.insight_is_custom or p.recommendation_is_custom %}
+                                <button type="submit" name="action" value="reset_pivot_text" class="btn btn-outline" style="font-size: 12px;">Reset to Auto-Generated</button>
+                            {% endif %}
+                        </div>
+                        <div class="muted-note">Both are included in the PDF. Changing the pivot settings or the filters writes fresh auto-generated text.</div>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+        {% endwith %}
+        {% else %}
+        {% with chart=block.chart %}
             <div class="chart-card" id="chart-{{ chart.index }}">
                 <div class="chart-card-header">
-                    <strong>Chart #{{ forloop.counter }}</strong>
+                    <div class="chart-title-wrap">
+                        <strong>Chart #{{ chart.number }}</strong>
+                        {% if chart.auto_detected_label %}
+                            <span class="auto-badge" title="Chart type picked automatically">Auto: {{ chart.auto_detected_label }}</span>
+                        {% endif %}
+                    </div>
                     <div class="chart-actions">
+                        <div class="move-group">
+                            <form method="POST" style="margin: 0;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="move_block">
+                                <input type="hidden" name="block" value="{{ block.token }}">
+                                <input type="hidden" name="direction" value="up">
+                                <button type="submit" class="btn btn-secondary move-btn" title="Move up" aria-label="Move up"{% if block.is_first %} disabled{% endif %}>&#9650;</button>
+                            </form>
+                            <form method="POST" style="margin: 0;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="move_block">
+                                <input type="hidden" name="block" value="{{ block.token }}">
+                                <input type="hidden" name="direction" value="down">
+                                <button type="submit" class="btn btn-secondary move-btn" title="Move down" aria-label="Move down"{% if block.is_last %} disabled{% endif %}>&#9660;</button>
+                            </form>
+                        </div>
                         <form method="POST" style="margin: 0;"{% if summary_is_custom or recommendations_is_custom %} onsubmit="return confirm('Duplicating adds a chart, so your custom Overall Summary / Recommendations will reset to auto-generated. Continue?');"{% endif %}>
                             {% csrf_token %}
                             <input type="hidden" name="action" value="duplicate_chart">
@@ -437,7 +1209,7 @@
                             <button type="submit" class="btn btn-secondary" style="padding: 4px 10px; font-size: 11px;" title="Copy this chart so you can try a different chart type">Duplicate Chart</button>
                         </form>
                         {% if rendered_charts|length > 1 %}
-                            <form method="POST" style="margin: 0;" onsubmit="return confirm('Remove Chart #{{ forloop.counter }}? Its saved insight will be deleted.{% if summary_is_custom or recommendations_is_custom %} Your custom Overall Summary / Recommendations will also reset to auto-generated.{% endif %}');">
+                            <form method="POST" style="margin: 0;" onsubmit="return confirm('Remove Chart #{{ chart.number }}? Its saved insight will be deleted.{% if summary_is_custom or recommendations_is_custom %} Your custom Overall Summary / Recommendations will also reset to auto-generated.{% endif %}');">
                                 {% csrf_token %}
                                 <input type="hidden" name="action" value="remove_chart">
                                 <input type="hidden" name="chart_index" value="{{ chart.index }}">
@@ -451,8 +1223,8 @@
                     {% csrf_token %}
                     <input type="hidden" name="chart_index" value="{{ chart.index }}">
 
-                    <div class="form-row">
-                        <div class="form-group chart-type-group">
+                    <div class="form-row chart-controls">
+                                            <div class="form-group chart-type-group">
                             <label>Chart Type</label>
                             <select name="chart_type" onchange="updateAxisVisibility(this)">
                                 <option value="auto" {% if chart.chart_type == 'auto' %}selected{% endif %}>Auto (Recommended)</option>
@@ -468,6 +1240,7 @@
                             </select>
                         </div>
 
+                        <div class="axis-field">
                         <div class="form-group x-group">
                             <label class="x-label">X Axis</label>
                             <select name="x_col" onchange="updateAxisHint(this.closest('form'))">
@@ -476,12 +1249,17 @@
                                 {% endfor %}
                             </select>
                         </div>
+                        <div class="form-group xcalc-toggle-group" style="display: none;">
+                            <button type="button" class="calc-chip xcalc-toggle{% if chart.x_calc %} active{% endif %}" onclick="toggleCalc(this, 'xcalc')" title="Build a calculated X value for every row, e.g. Unit Price × Units Sold">&fnof;x Calculate</button>
+                        </div>
+                        </div>
 
                         <div class="form-group swap-group">
                             <label>&nbsp;</label>
                             <button type="button" class="swap-btn" onclick="swapAxes(this)" title="Switch X and Y axis" aria-label="Switch X and Y axis">&#8644;</button>
                         </div>
 
+                        <div class="axis-field">
                         <div class="form-group y-group">
                             <label class="y-label">Y Axis</label>
                             <select name="y_col" onchange="updateAxisHint(this.closest('form'))">
@@ -490,16 +1268,33 @@
                                 {% endfor %}
                             </select>
                         </div>
+                        <div class="form-group calc-toggle-group" style="display: none;">
+                            <button type="button" class="calc-chip calc-toggle{% if chart.calc %} active{% endif %}" onclick="toggleCalc(this)" title="Build a calculated Y value, e.g. Profit ÷ Net Revenue × 100">&fnof;x Calculate</button>
+                        </div>
+                        </div>
 
+                        <div class="form-group action-group">
+                            <label>&nbsp;</label>
+                        <button
+                            type="submit"
+                            name="action"
+                            value="update_chart"
+                            class="btn">
+                            Update Chart
+                        </button>
+                        </div>
+                    </div>
+
+                    <div class="options-row" style="display: none;">
+                        <span class="options-title">Date grouping</span>
                         <div class="form-group period-group" style="display: none;">
-                            <label title="Your X axis is a date. Group rows into periods so the line is readable.">Group dates by</label>
+                            <label title="Your X axis is a date. Group rows into periods (for example by month) so the chart is readable.">Group dates by</label>
                             <select name="period" onchange="updateAxisHint(this.closest('form'))">
                                 {% for key, label in time_periods %}
                                     <option value="{{ key }}" {% if chart.period == key %}selected{% endif %}>{{ label }}</option>
                                 {% endfor %}
                             </select>
                         </div>
-
                         <div class="form-group agg-group" style="display: none;">
                             <label>Show</label>
                             <select name="agg" onchange="updateAxisHint(this.closest('form'))">
@@ -508,14 +1303,158 @@
                                 {% endfor %}
                             </select>
                         </div>
+                    </div>
 
-                        <button
-                            type="submit"
-                            name="action"
-                            value="update_chart"
-                            class="btn">
-                            Update Chart
-                        </button>
+                    <div class="rank-row" style="display: none;">
+                        <span class="options-title">Sort &amp; limit</span>
+                        <div class="form-group">
+                            <label title="Order the bars / slices">Sort by</label>
+                            <select name="sort">
+                                {% for key, label in sort_options %}
+                                    <option value="{{ key }}" {% if chart.sort == key %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label title="Keep only the highest or lowest groups">Show</label>
+                            <select name="topn" onchange="updateRankVisibility(this.closest('form'))">
+                                {% for key, label in topn_modes %}
+                                    <option value="{{ key }}" {% if chart.topn == key %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group topn-n-group" style="display: none;">
+                            <label>N</label>
+                            <input type="number" name="topn_n" min="1" max="{{ max_top_n }}" value="{{ chart.topn_n }}">
+                        </div>
+                    </div>
+
+                    <div class="xcalc-panel" style="display: none;">
+                        <input type="hidden" name="xcalc_on" value="{% if chart.x_calc %}1{% else %}0{% endif %}">
+                        <div class="calc-panel-title">Calculated X value</div>
+                        <div class="calc-note">Worked out for every row, then plotted on the X axis.</div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Column A</label>
+                                <select name="xcalc_a" onchange="refreshCalcPanel(this.closest('form'), 'xcalc')">
+                                    {% for col in numeric_columns %}
+                                        <option value="{{ col }}" {% if chart.x_calc.a == col %}selected{% endif %}>{{ col }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Operation</label>
+                                <select name="xcalc_op" onchange="refreshCalcPanel(this.closest('form'), 'xcalc')">
+                                    <option value="/" {% if chart.x_calc.op == '/' or not chart.x_calc.op %}selected{% endif %}>&divide; Divide</option>
+                                    <option value="*" {% if chart.x_calc.op == '*' %}selected{% endif %}>&times; Multiply</option>
+                                    <option value="-" {% if chart.x_calc.op == '-' %}selected{% endif %}>&minus; Subtract</option>
+                                    <option value="+" {% if chart.x_calc.op == '+' %}selected{% endif %}>+ Add</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>By</label>
+                                <select name="xcalc_b_kind" onchange="refreshCalcPanel(this.closest('form'), 'xcalc')">
+                                    <option value="col" {% if chart.x_calc.b_kind != 'num' %}selected{% endif %}>Column</option>
+                                    <option value="num" {% if chart.x_calc.b_kind == 'num' %}selected{% endif %}>Number</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group xcalc-b-col">
+                                <label>Column B</label>
+                                <select name="xcalc_b_col" onchange="refreshCalcPanel(this.closest('form'), 'xcalc')">
+                                    {% for col in numeric_columns %}
+                                        <option value="{{ col }}" {% if chart.x_calc.b_kind == 'col' and chart.x_calc.b == col %}selected{% endif %}>{{ col }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group xcalc-b-num" style="display: none;">
+                                <label>Number</label>
+                                <input type="number" name="xcalc_b_num" step="any" value="{% if chart.x_calc.b_kind == 'num' %}{{ chart.x_calc.b }}{% else %}100{% endif %}" oninput="refreshCalcPanel(this.closest('form'), 'xcalc')">
+                            </div>
+
+                            <div class="form-group">
+                                <label>&nbsp;</label>
+                                <label class="calc-check">
+                                    <input type="checkbox" name="xcalc_pct" value="1" {% if chart.x_calc.pct %}checked{% endif %} onchange="refreshCalcPanel(this.closest('form'), 'xcalc')">
+                                    &times; 100 (show as %)
+                                </label>
+                            </div>
+
+                        </div>
+
+                        <div class="xcalc-preview"></div>
+                        <div class="xcalc-warning" style="display: none;"></div>
+                    </div>
+
+                    <div class="calc-panel" style="display: none;">
+                        <input type="hidden" name="calc_on" value="{% if chart.calc %}1{% else %}0{% endif %}">
+                        <div class="calc-panel-title">Calculated Y value</div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Column A</label>
+                                <select name="calc_a" onchange="refreshCalcPanel(this.closest('form'))">
+                                    {% for col in numeric_columns %}
+                                        <option value="{{ col }}" {% if chart.calc.a == col %}selected{% endif %}>{{ col }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Operation</label>
+                                <select name="calc_op" onchange="refreshCalcPanel(this.closest('form'))">
+                                    <option value="/" {% if chart.calc.op == '/' or not chart.calc.op %}selected{% endif %}>&divide; Divide</option>
+                                    <option value="*" {% if chart.calc.op == '*' %}selected{% endif %}>&times; Multiply</option>
+                                    <option value="-" {% if chart.calc.op == '-' %}selected{% endif %}>&minus; Subtract</option>
+                                    <option value="+" {% if chart.calc.op == '+' %}selected{% endif %}>+ Add</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>By</label>
+                                <select name="calc_b_kind" onchange="refreshCalcPanel(this.closest('form'))">
+                                    <option value="col" {% if chart.calc.b_kind != 'num' %}selected{% endif %}>Column</option>
+                                    <option value="num" {% if chart.calc.b_kind == 'num' %}selected{% endif %}>Number</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group calc-b-col">
+                                <label>Column B</label>
+                                <select name="calc_b_col" onchange="refreshCalcPanel(this.closest('form'))">
+                                    {% for col in numeric_columns %}
+                                        <option value="{{ col }}" {% if chart.calc.b_kind == 'col' and chart.calc.b == col %}selected{% endif %}>{{ col }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="form-group calc-b-num" style="display: none;">
+                                <label>Number</label>
+                                <input type="number" name="calc_b_num" step="any" value="{% if chart.calc.b_kind == 'num' %}{{ chart.calc.b }}{% else %}100{% endif %}" oninput="refreshCalcPanel(this.closest('form'))">
+                            </div>
+
+                            <div class="form-group">
+                                <label>&nbsp;</label>
+                                <label class="calc-check">
+                                    <input type="checkbox" name="calc_pct" value="1" {% if chart.calc.pct %}checked{% endif %} onchange="refreshCalcPanel(this.closest('form'))">
+                                    &times; 100 (show as %)
+                                </label>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Combine rows by</label>
+                                <select name="calc_mode" onchange="refreshCalcPanel(this.closest('form'))">
+                                    <option value="total" {% if chart.calc.mode != 'mean' %}selected{% endif %}>Totals</option>
+                                    <option value="mean" {% if chart.calc.mode == 'mean' %}selected{% endif %}>Average of each row</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="calc-preview"></div>
+                        <div class="calc-warning" style="display: none;"></div>
                     </div>
 
                     <div class="axis-hint">
@@ -523,17 +1462,11 @@
                         <button type="button" class="hint-link" onclick="swapAxes(this)">Switch axes?</button>
                     </div>
 
-                    {% if chart.auto_detected_label %}
-                        <div style="font-size: 11px; font-weight: bold; text-transform: uppercase; margin-bottom: 8px;">
-                            Auto-detected: {{ chart.auto_detected_label }}
-                        </div>
-                    {% endif %}
-
                     <div class="chart-container">
                         {{ chart.plot_html|safe }}
                     </div>
 
-                    <label style="margin-bottom: 5px; display: block; font-size: 12px; font-weight: bold; text-transform: uppercase;">Written Insights</label>
+                    <label style="margin-bottom: 5px; display: block; font-size: 12px; font-weight: bold; text-transform: uppercase;">Written Insights <span class="tag-custom" data-watch="insights_text" data-saved="{{ chart.insight_is_custom|yesno:'1,0' }}"{% if not chart.insight_is_custom %} hidden{% endif %}>Custom</span></label>
                     <textarea name="insights_text" rows="3">{{ chart.insights_text }}</textarea>
                     
                     <div style="margin-top: 8px;">
@@ -548,41 +1481,19 @@
                     </div>
                 </form>
             </div>
+        {% endwith %}
+        {% endif %}
         {% endfor %}
-                <!-- Overall Summary -->
-        <div class="summary-card" id="overall-summary">
-            <div class="chart-card-header" style="border-bottom: none; margin-bottom: 10px; padding-bottom: 0;">
-                <h3 style="margin: 0; border-bottom: none; padding-bottom: 0;">Overall Summary</h3>
-                {% if summary_is_custom %}
-                    <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--success);">Custom</span>
-                {% endif %}
-            </div>
-
-            <form method="POST">
-                {% csrf_token %}
-                <textarea name="overall_summary_text" rows="4" style="width: 100%; padding: 10px;">{{ overall_summary }}</textarea>
-                <div style="margin-top: 8px; display: flex; gap: 8px;">
-                    <button type="submit" name="action" value="save_summary" class="btn" style="font-size: 12px;">Save Summary</button>
-                    {% if summary_is_custom %}
-                        <button type="submit" name="action" value="reset_summary" class="btn btn-outline" style="font-size: 12px;">Reset to Auto-Generated</button>
-                    {% endif %}
-                </div>
-            </form>
-        </div>
-
 
         <!-- Recommendations -->
         <div class="summary-card" id="recommendations">
             <div class="chart-card-header" style="border-bottom: none; margin-bottom: 10px; padding-bottom: 0;">
                 <h3 style="margin: 0; border-bottom: none; padding-bottom: 0;">Recommendations</h3>
-                {% if recommendations_is_custom %}
-                    <span style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--success);">Custom</span>
-                {% endif %}
             </div>
 
             <form method="POST">
                 {% csrf_token %}
-                <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 6px;">One recommendation per line</label>
+                <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 6px;">One recommendation per line <span class="tag-custom" data-watch="recommendations_text" data-saved="{{ recommendations_is_custom|yesno:'1,0' }}"{% if not recommendations_is_custom %} hidden{% endif %}>Custom</span></label>
                 <textarea name="recommendations_text" rows="6" style="width: 100%; padding: 10px;">{% for recommendation in recommendations %}{{ recommendation }}
 {% endfor %}</textarea>
                 <div style="margin-top: 8px; display: flex; gap: 8px;">
@@ -593,18 +1504,42 @@
                 </div>
             </form>
         </div>
-        <!-- Add Chart Button -->
-        <form method="POST" style="margin-top: 15px; text-align: center;">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="add_chart">
-            <button type="submit" class="btn" style="background: #10b981; font-size: 14px; padding: 12px 24px;">+ Add Another Chart</button>
-        </form>
+        <!-- Add Chart / Add Pivot Table -->
+        <div style="margin-top: 15px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap;">
+            <form method="POST" style="margin: 0;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_chart">
+                <button type="submit" class="btn" style="background: #10b981; font-size: 14px; padding: 12px 24px;">+ Add Another Chart</button>
+            </form>
+            <form method="POST" style="margin: 0;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="add_pivot">
+                <button type="submit" class="btn" style="font-size: 14px; padding: 12px 24px;">+ Add Pivot Table</button>
+            </form>
+        </div>
         <footer class="footer">
             © 2026 Cascade. All rights reserved.
         </footer>
     </div>
+    </div>
+
+    <!-- Small screens: contents drawer + Add Chart stay within thumb reach -->
+    <div class="fab-bar">
+        <button type="button" class="btn btn-secondary" onclick="toggleNav()" aria-label="Open contents">&#9776; Contents</button>
+        <form method="POST"{% if summary_is_custom or recommendations_is_custom %} onsubmit="return confirm('Adding a chart will reset your custom Overall Summary / Recommendations to auto-generated. Continue?');"{% endif %}>
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_chart">
+            <button type="submit" class="btn" style="background: #10b981;">+ Chart</button>
+        </form>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="add_pivot">
+            <button type="submit" class="btn">+ Pivot</button>
+        </form>
+    </div>
 
     {{ numeric_columns|json_script:"numeric-cols" }}
+    {{ column_meta|json_script:"column-meta" }}
     {{ date_columns|json_script:"date-cols" }}
     <script>
         // Toggle the preview drawer
@@ -639,7 +1574,162 @@
                 || x.value !== originalValue(x)
                 || y.value !== originalValue(y)
                 || (period && period.value !== originalValue(period))
-                || (agg && agg.value !== originalValue(agg));
+                || (agg && agg.value !== originalValue(agg))
+                || rankChanged(form)
+                || calcSignature(form) !== form.dataset.calcOriginal;
+        }
+
+        // Sort / Top-Bottom N changed (N only counts while Top/Bottom is on)
+        function rankChanged(form) {
+            const sort = form.querySelector('select[name="sort"]');
+            const topn = form.querySelector('select[name="topn"]');
+            const n = form.querySelector('input[name="topn_n"]');
+            if (!sort || !topn || !n) return false;
+            return sort.value !== originalValue(sort)
+                || topn.value !== originalValue(topn)
+                || (topn.value !== 'all' && n.value !== n.defaultValue);
+        }
+
+        // ---- Advanced: calculated X or Y value ----
+        // 'calc'  = calculated Y (bar, pie, line, area)
+        // 'xcalc' = calculated X, worked out per row (scatter, histogram, box)
+        const CALC_TYPES = {
+            calc: ['bar', 'horizontal_bar', 'pie', 'line', 'area'],
+            xcalc: ['scatter', 'histogram', 'box']
+        };
+        const CALC_SYMBOLS = { '/': '\u00f7', '*': '\u00d7', '-': '\u2212', '+': '+' };
+
+        function calcApplicable(form, p = 'calc') {
+            if (NUMERIC_COLS.size === 0) return false;
+            const type = form.querySelector('select[name="chart_type"]').value;
+            if (type === 'auto') {
+                if (p === 'xcalc') {
+                    // Auto turns a numeric X + numeric Y into a scatter plot
+                    return NUMERIC_COLS.has(form.querySelector('select[name="y_col"]').value);
+                }
+                const x = form.querySelector('select[name="x_col"]').value;
+                return DATE_COLS.has(x) || !NUMERIC_COLS.has(x);
+            }
+            return CALC_TYPES[p].includes(type);
+        }
+
+        function calcIsActive(form, p = 'calc') {
+            const flag = form.querySelector('input[name="' + p + '_on"]');
+            return !!flag && flag.value === '1' && calcApplicable(form, p);
+        }
+
+        // Text that identifies one calculation, used to detect changes
+        function calcAxisSignature(form, p) {
+            const flag = form.querySelector('input[name="' + p + '_on"]');
+            if (!flag || flag.value !== '1') return 'off';
+            const get = n => form.querySelector('[name="' + p + '_' + n + '"]');
+            const kind = get('b_kind').value;
+            const mode = get('mode');
+            return [get('a').value, get('op').value, kind,
+                    kind === 'col' ? get('b_col').value : get('b_num').value,
+                    mode ? mode.value : '',
+                    get('pct').checked ? 1 : 0].join('|');
+        }
+
+        function calcSignature(form) {
+            return calcAxisSignature(form, 'calc') + '#' + calcAxisSignature(form, 'xcalc');
+        }
+
+        function toggleCalc(btn, p = 'calc') {
+            const form = btn.closest('form');
+            const other = p === 'calc' ? 'xcalc' : 'calc';
+            const flag = form.querySelector('input[name="' + p + '_on"]');
+            const turningOn = flag.value !== '1';
+            flag.value = turningOn ? '1' : '0';
+            if (turningOn) {
+                // Only one calculation at a time (X or Y)
+                form.querySelector('input[name="' + other + '_on"]').value = '0';
+                // Start with two different columns so the formula isn't A \u00f7 A
+                const a = form.querySelector('select[name="' + p + '_a"]');
+                const b = form.querySelector('select[name="' + p + '_b_col"]');
+                if (a.value === b.value && b.options.length > 1) {
+                    b.selectedIndex = a.selectedIndex === 0 ? 1 : 0;
+                }
+            }
+            // Re-runs the dropdown visibility, then the calculation panels
+            updateAxisVisibility(form.querySelector('select[name="chart_type"]'));
+        }
+
+        function refreshCalcPanel(form, p = 'calc') {
+            const get = n => form.querySelector('[name="' + p + '_' + n + '"]');
+            const kind = get('b_kind').value;
+            form.querySelector('.' + p + '-b-col').style.display = kind === 'col' ? 'flex' : 'none';
+            form.querySelector('.' + p + '-b-num').style.display = kind === 'num' ? 'flex' : 'none';
+
+            const a = get('a').value;
+            const op = get('op').value;
+            const bText = kind === 'col' ? get('b_col').value : (get('b_num').value || '?');
+            const pct = get('pct').checked;
+            const ratio = p === 'calc' && op === '/' && kind === 'col';
+
+            // "Combine rows by" exists on the Y panel only
+            const mode = get('mode');
+            if (mode) {
+                mode.options[0].text = ratio
+                    ? 'Ratio of totals (\u03a3 ' + a + ' \u00f7 \u03a3 ' + bText + ')'
+                    : "Total of each row's result";
+                mode.options[1].text = "Average of each row's result";
+            }
+
+            form.querySelector('.' + p + '-preview').textContent =
+                (p === 'calc' ? 'Y' : 'X') + ' = ' + a + ' ' + CALC_SYMBOLS[op] + ' ' + bText
+                + (pct ? ' \u00d7 100' : '');
+
+            let warning = '';
+            const type = form.querySelector('select[name="chart_type"]').value;
+            if (op === '/' && kind === 'num' && Number(get('b_num').value) === 0) {
+                warning = 'Cannot divide by zero. The calculation will be ignored.';
+            } else if (p === 'calc' && type === 'pie' && !(mode.value === 'total' && !ratio)) {
+                warning = "Pie charts show shares of a whole, which doesn't work for ratios or averages. This will be drawn as a bar chart.";
+            }
+            const warn = form.querySelector('.' + p + '-warning');
+            warn.textContent = warning;
+            warn.style.display = warning ? 'block' : 'none';
+        }
+
+        function updateCalcVisibility(form) {
+            if (!form.querySelector('.calc-toggle-group')) return;
+            const type = form.querySelector('select[name="chart_type"]').value;
+            let hidSomething = false;
+
+            ['calc', 'xcalc'].forEach(p => {
+                const toggleGroup = form.querySelector('.' + p + '-toggle-group');
+                const applies = calcApplicable(form, p);
+                const active = calcIsActive(form, p);
+
+                toggleGroup.style.display = applies ? 'flex' : 'none';
+                const chipBtn = toggleGroup.querySelector('.' + p + '-toggle');
+                chipBtn.classList.toggle('active', active);
+                chipBtn.textContent = active ? '\u0192x Calculating \u00b7 turn off' : '\u0192x Calculate';
+                form.querySelector(p === 'calc' ? '.y-group' : '.x-group')
+                    .closest('.axis-field').classList.toggle('is-calc', active);
+                form.querySelector('.' + p + '-panel').style.display = active ? 'block' : 'none';
+
+                if (active) {
+                    // The panel replaces the dropdown it calculates (and the swap button)
+                    form.querySelector(p === 'calc' ? '.y-group' : '.x-group').style.display = 'none';
+                    form.querySelector('.swap-group').style.display = 'none';
+                    // Histogram / box plots describe the calculated X value alone
+                    if (p === 'xcalc' && (type === 'histogram' || type === 'box')) {
+                        form.querySelector('.y-group').style.display = 'none';
+                    }
+                    hidSomething = true;
+                    refreshCalcPanel(form, p);
+                }
+            });
+
+            if (hidSomething) {
+                form.dataset.calcHid = '1';
+            } else if (form.dataset.calcHid) {
+                // Calculations switched off: bring the dropdowns back
+                delete form.dataset.calcHid;
+                updateAxisVisibility(form.querySelector('select[name="chart_type"]'));
+            }
         }
 
         // True when the user has a saved insight, or typed changes not yet saved
@@ -689,31 +1779,54 @@
 
         // Show a "looks reversed" hint when a numeric column is on X and a text column on Y
         const AXIS_SENSITIVE_TYPES = ['auto', 'bar', 'horizontal_bar', 'pie', 'line', 'area'];
-        // Group-by only applies to line/area charts with a date on X and a number on Y
-        const TIME_GROUP_TYPES = ['auto', 'line', 'area'];
+        // Group-by applies to line, area and bar charts with a date on X and a number on Y
+        const TIME_GROUP_TYPES = ['auto', 'line', 'area', 'bar'];
         function updatePeriodVisibility(form) {
             const type = form.querySelector('select[name="chart_type"]').value;
             const x = form.querySelector('select[name="x_col"]').value;
             const y = form.querySelector('select[name="y_col"]').value;
+            const calcActive = calcIsActive(form);
             const applies = TIME_GROUP_TYPES.includes(type)
-                && x !== y
                 && DATE_COLS.has(x)
-                && NUMERIC_COLS.has(y);
+                && (calcActive || (x !== y && NUMERIC_COLS.has(y)));
             const period = form.querySelector('select[name="period"]');
             form.querySelector('.period-group').style.display = applies ? 'flex' : 'none';
-            // "Show" (sum/average/...) is only meaningful once a period is picked
+            // The whole "Date grouping" row appears only when it has something to show
+            const optionsRow = form.querySelector('.options-row');
+            if (optionsRow) optionsRow.style.display = applies ? 'flex' : 'none';
+            // "Show" (sum/average/...) is only meaningful once a period is picked,
+            // and a calculation has its own "Combine rows by" setting
             form.querySelector('.agg-group').style.display =
-                (applies && period.value !== 'none') ? 'flex' : 'none';
+                (applies && !calcActive && period.value !== 'none') ? 'flex' : 'none';
+        }
+
+        // Hide an axis column entirely when everything in it is hidden (no stray gaps)
+        function syncAxisFields(form) {
+            form.querySelectorAll('.axis-field').forEach(field => {
+                const anyVisible = Array.from(field.children).some(c => c.style.display !== 'none');
+                field.style.display = anyVisible ? 'flex' : 'none';
+            });
         }
 
         function updateAxisHint(form) {
             updatePeriodVisibility(form);
+            updateCalcVisibility(form);
+            updateRankVisibility(form);
+            syncAxisFields(form);
+            // The "Auto: ..." badge only makes sense while the type is Auto
+            const badge = form.closest('.chart-card').querySelector('.auto-badge');
+            if (badge) {
+                badge.style.display =
+                    form.querySelector('select[name="chart_type"]').value === 'auto' ? '' : 'none';
+            }
             const hint = form.querySelector('.axis-hint');
             if (!hint) return;
             const type = form.querySelector('select[name="chart_type"]').value;
             const x = form.querySelector('select[name="x_col"]').value;
             const y = form.querySelector('select[name="y_col"]').value;
             const reversed = AXIS_SENSITIVE_TYPES.includes(type)
+                && !calcIsActive(form, 'calc')
+                && !calcIsActive(form, 'xcalc')
                 && x !== y
                 && NUMERIC_COLS.has(x)
                 && !NUMERIC_COLS.has(y);
@@ -762,10 +1875,326 @@
 
         // Run on page load for all charts
         document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.chart-form').forEach(form => {
+                form.dataset.calcOriginal = calcSignature(form);
+            });
             document.querySelectorAll('select[name="chart_type"]').forEach(select => {
                 updateAxisVisibility(select);
             });
         });
+    </script>
+
+    <script>
+        // ===== Filters, KPI cards, sort & limit, pivot =====
+        const COLUMN_META = JSON.parse(document.getElementById('column-meta').textContent || '{}');
+        const RECORDS = '__records__';
+        const RANKABLE = ['bar', 'horizontal_bar', 'pie'];
+
+        function kindOf(col) {
+            return col === RECORDS ? 'number' : ((COLUMN_META[col] || {}).kind || 'text');
+        }
+
+        // --- per-chart Sort & limit row (bar / horizontal bar / pie only) ---
+        function rankApplicable(form) {
+            const type = form.querySelector('select[name="chart_type"]').value;
+            const x = form.querySelector('select[name="x_col"]').value;
+            const y = form.querySelector('select[name="y_col"]').value;
+            if (calcIsActive(form, 'xcalc')) return false;
+            // Bars grouped by date stay in time order, so sorting does not apply
+            if (type === 'bar' && DATE_COLS.has(x) && (calcIsActive(form, 'calc') || NUMERIC_COLS.has(y))) {
+                const period = form.querySelector('select[name="period"]');
+                if (period && period.value !== 'none') return false;
+            }
+            if (type === 'auto') {
+                if (DATE_COLS.has(x) && (calcIsActive(form, 'calc') || NUMERIC_COLS.has(y))) return false;
+                if (NUMERIC_COLS.has(x) && NUMERIC_COLS.has(y)) return false;
+                return true;
+            }
+            return RANKABLE.includes(type);
+        }
+
+        function updateRankVisibility(form) {
+            const row = form.querySelector('.rank-row');
+            if (!row) return;
+            row.style.display = rankApplicable(form) ? 'flex' : 'none';
+            const topn = form.querySelector('select[name="topn"]').value;
+            row.querySelector('.topn-n-group').style.display = topn === 'all' ? 'none' : 'flex';
+        }
+
+        // --- Filters ---
+        function updateFilterInputs() {
+            const form = document.getElementById('filter-form');
+            if (!form) return;
+            const col = form.querySelector('[name="filter_col"]').value;
+            const meta = COLUMN_META[col] || { kind: 'text' };
+            const hasChoices = meta.kind === 'text' && Array.isArray(meta.choices);
+            const show = (sel, on) => form.querySelectorAll(sel).forEach(el => el.style.display = on ? 'flex' : 'none');
+            show('.f-number', meta.kind === 'number');
+            show('.f-date', meta.kind === 'date');
+            show('.f-choices', hasChoices);
+            show('.f-text', meta.kind === 'text' && !hasChoices);
+
+            ['filter_min_num', 'filter_max_num', 'filter_min_date', 'filter_max_date', 'filter_text'].forEach(n => {
+                form.querySelector('[name="' + n + '"]').value = '';
+            });
+            if (meta.kind === 'number' && meta.min !== undefined) {
+                form.querySelector('[name="filter_min_num"]').placeholder = 'from ' + meta.min;
+                form.querySelector('[name="filter_max_num"]').placeholder = 'up to ' + meta.max;
+            }
+            if (meta.kind === 'date' && meta.min !== undefined) {
+                ['filter_min_date', 'filter_max_date'].forEach(n => {
+                    const el = form.querySelector('[name="' + n + '"]');
+                    el.min = meta.min; el.max = meta.max;
+                });
+            }
+            const box = form.querySelector('.choice-box');
+            box.textContent = '';
+            if (hasChoices) {
+                meta.choices.forEach(choice => {
+                    const label = document.createElement('label');
+                    const box_ = document.createElement('input');
+                    box_.type = 'checkbox';
+                    box_.name = 'filter_values';
+                    box_.value = choice;
+                    label.appendChild(box_);
+                    label.appendChild(document.createTextNode(choice));
+                    box.appendChild(label);
+                });
+            }
+        }
+
+        function setAllChoices(on) {
+            document.querySelectorAll('#filter-form input[name="filter_values"]').forEach(c => c.checked = on);
+        }
+
+        function validateFilterForm(form) {
+            const col = form.querySelector('[name="filter_col"]').value;
+            const meta = COLUMN_META[col] || { kind: 'text' };
+            const val = n => form.querySelector('[name="' + n + '"]').value.trim();
+            let ok;
+            if (meta.kind === 'number') ok = val('filter_min_num') !== '' || val('filter_max_num') !== '';
+            else if (meta.kind === 'date') ok = val('filter_min_date') !== '' || val('filter_max_date') !== '';
+            else if (Array.isArray(meta.choices)) ok = form.querySelectorAll('input[name="filter_values"]:checked').length > 0;
+            else ok = val('filter_text') !== '';
+            if (!ok) { alert('Enter or pick a value for the filter first.'); return false; }
+            return confirmFilterChange();
+        }
+
+        // Saved insights / summary / recommendations describe the old rows
+        function confirmFilterChange() {
+            if (document.body.dataset.hasCustom === '1') {
+                return confirm('Changing the filters will reset your saved insights, pivot notes, Overall Summary and Recommendations to auto-generated ones. Continue?');
+            }
+            return true;
+        }
+
+        // --- KPI card form: only offer calculations that fit the column ---
+        const KPI_ALLOWED = {
+            number: ['sum', 'mean', 'median', 'min', 'max', 'count', 'nunique', 'mode'],
+            date: ['min', 'max', 'count', 'nunique', 'mode'],
+            text: ['count', 'nunique', 'mode']
+        };
+        function updateKpiAggs() {
+            const form = document.getElementById('kpi-form');
+            if (!form) return;
+            const col = form.querySelector('[name="kpi_col"]').value;
+            const group = form.querySelector('.kpi-agg-group');
+            group.style.display = col === RECORDS ? 'none' : 'flex';
+            const allowed = KPI_ALLOWED[kindOf(col)] || KPI_ALLOWED.text;
+            const select = form.querySelector('[name="kpi_agg"]');
+            Array.from(select.options).forEach(o => {
+                const ok = allowed.includes(o.value);
+                o.disabled = !ok; o.hidden = !ok;
+            });
+            if (!allowed.includes(select.value)) select.value = allowed[0];
+        }
+
+        // --- Pivot form ---
+        function updatePivotControls(form) {
+            if (!form) return;
+            const get = n => form.querySelector('[name="' + n + '"]');
+            const values = get('pv_values').value;
+
+            // Calculation: not needed for "Number of records"; text columns can only be counted
+            form.querySelector('.pv-agg-group').style.display = values === RECORDS ? 'none' : 'flex';
+            const numeric = kindOf(values) === 'number';
+            const agg = get('pv_agg');
+            Array.from(agg.options).forEach(o => {
+                const ok = numeric || o.value === 'count' || o.value === 'nunique';
+                o.disabled = !ok; o.hidden = !ok;
+            });
+            if (agg.selectedOptions[0] && agg.selectedOptions[0].disabled) agg.value = 'count';
+
+            // Columns can't repeat the Rows field
+            const rowsCol = get('pv_rows').value;
+            Array.from(get('pv_cols').options).forEach(o => { o.disabled = o.value !== '' && o.value === rowsCol; });
+            if (get('pv_cols').value === rowsCol) get('pv_cols').value = '';
+
+            const dateOnAxis = kindOf(rowsCol) === 'date' || kindOf(get('pv_cols').value) === 'date';
+            form.querySelector('.pv-period-group').style.display = dateOnAxis ? 'flex' : 'none';
+            form.querySelector('.pv-n-group').style.display = get('pv_topn').value === 'all' ? 'none' : 'flex';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateFilterInputs();
+            updateKpiAggs();
+            document.querySelectorAll('.pivot-form').forEach(updatePivotControls);
+            document.querySelectorAll('.chart-form').forEach(updateRankVisibility);
+        });
+
+        // ---------- Rearranging charts and pivot tables by dragging them in the contents panel ----------
+        (function () {
+            const list = document.getElementById('nav-blocks');
+            const form = document.getElementById('layout-form');
+            if (!list || !form) return;
+            let dragged = null;
+
+            function clearMarks() {
+                list.querySelectorAll('.drop-before, .drop-after').forEach(el => el.classList.remove('drop-before', 'drop-after'));
+            }
+            function isAfter(el, event) {
+                const box = el.getBoundingClientRect();
+                return event.clientY > box.top + box.height / 2;
+            }
+
+            list.querySelectorAll('.nav-block').forEach(el => {
+                el.addEventListener('dragstart', e => {
+                    dragged = el;
+                    el.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', el.dataset.token);
+                });
+                el.addEventListener('dragend', () => {
+                    el.classList.remove('dragging');
+                    clearMarks();
+                    dragged = null;
+                });
+                el.addEventListener('dragover', e => {
+                    if (!dragged || el === dragged) return;
+                    e.preventDefault();
+                    clearMarks();
+                    el.classList.add(isAfter(el, e) ? 'drop-after' : 'drop-before');
+                });
+                el.addEventListener('drop', e => {
+                    if (!dragged || el === dragged) return;
+                    e.preventDefault();
+                    list.insertBefore(dragged, isAfter(el, e) ? el.nextSibling : el);
+                    clearMarks();
+                    form.querySelector('[name="order"]').value =
+                        Array.from(list.querySelectorAll('.nav-block')).map(x => x.dataset.token).join(',');
+                    form.querySelector('[name="moved"]').value = dragged.dataset.token;
+                    form.submit();
+                });
+            });
+        })();
+
+        // ---------- Side navigation ----------
+        function toggleNav(force) {
+            const nav = document.getElementById('side-nav');
+            const open = force === undefined ? !nav.classList.contains('open') : force;
+            nav.classList.toggle('open', open);
+            document.getElementById('nav-backdrop').classList.toggle('show', open);
+        }
+
+        (function () {
+            const nav = document.getElementById('side-nav');
+            if (!nav) return;
+            const links = Array.from(nav.querySelectorAll('a[data-target]'));
+            const items = links.map(a => ({ a: a, el: document.getElementById(a.dataset.target) })).filter(x => x.el);
+            let activeLink = null, ticking = false, pinned = null;
+
+            function update() {
+                ticking = false;
+                if (!items.length) return;
+                let current = items[0];
+                const atBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 4;
+                if (pinned) {
+                    // a section that was just clicked stays highlighted until the person scrolls themselves
+                    current = items.find(it => it.a === pinned) || current;
+                } else if (atBottom) {
+                    current = items[items.length - 1];
+                } else {
+                    items.forEach(it => { if (it.el.getBoundingClientRect().top <= 140) current = it; });
+                }
+                if (current.a === activeLink) return;
+                activeLink = current.a;
+                links.forEach(l => l.classList.toggle('active', l === activeLink));
+
+                // keep the highlighted entry visible inside the nav without moving the page
+                const ar = activeLink.getBoundingClientRect(), nr = nav.getBoundingClientRect();
+                if (ar.top < nr.top + 60) nav.scrollTop -= (nr.top + 60 - ar.top);
+                else if (ar.bottom > nr.bottom - 80) nav.scrollTop += (ar.bottom - (nr.bottom - 80));
+            }
+
+            window.addEventListener('scroll', function () {
+                if (!ticking) { ticking = true; requestAnimationFrame(update); }
+            }, { passive: true });
+            window.addEventListener('resize', update);
+            document.addEventListener('DOMContentLoaded', update);
+            window.addEventListener('load', update);
+
+            links.forEach(a => a.addEventListener('click', function () {
+                pinned = a;
+                update();
+                if (window.matchMedia('(max-width: 1100px)').matches) toggleNav(false);
+            }));
+
+            // any scrolling the person does themselves hands control back to the scroll position
+            function release(e) {
+                if (!pinned) return;
+                if (e && e.type === 'mousedown' && e.target.closest && e.target.closest('a[data-target]')) return;
+                pinned = null;
+                update();
+            }
+            ['wheel', 'touchmove', 'keydown', 'mousedown'].forEach(ev =>
+                window.addEventListener(ev, release, { passive: true }));
+        })();
+    </script>
+    <script>
+        // Import Progress: pick the file first, then ask before it replaces the current work.
+        function startProgressImport(event) {
+            if (event) { event.preventDefault(); }
+            var input = document.getElementById('progress-import-file');
+            if (input) { input.value = ''; input.click(); }
+            return false;
+        }
+        (function () {
+            var input = document.getElementById('progress-import-file');
+            if (!input) { return; }
+            var MAX_BYTES = {{ max_progress_bytes|default:15728640|stringformat:"d" }};
+            var MAX_MB = {{ max_progress_mb|default:15|stringformat:"d" }};
+            input.addEventListener('change', function () {
+                var file = input.files && input.files[0];
+                if (!file) { return; }
+                if (file.size === 0) {
+                    alert('That file is empty.');
+                    input.value = '';
+                } else if (file.size > MAX_BYTES) {
+                    alert('"' + file.name + '" is over the ' + MAX_MB + ' MB limit for progress files.');
+                    input.value = '';
+                } else if (confirm('Import "' + file.name + '"?\n\nThis replaces everything on this page: the data, charts, notes and pivot tables. Save your current progress first if you want to keep it.')) {
+                    input.form.submit();
+                } else {
+                    input.value = '';
+                }
+            });
+        })();
+
+        // --- "Custom" tags: shown for saved custom text, and as soon as you edit a box ---
+        (function () {
+            function sync(tag, box) {
+                var edited = box.value !== box.defaultValue;
+                tag.hidden = !(edited || tag.dataset.saved === '1');
+                tag.textContent = edited ? 'Custom (unsaved)' : 'Custom';
+            }
+            document.querySelectorAll('.tag-custom[data-watch]').forEach(function (tag) {
+                var form = tag.closest('form');
+                var box = form && form.querySelector('textarea[name="' + tag.dataset.watch + '"]');
+                if (!box) { return; }
+                sync(tag, box);
+                box.addEventListener('input', function () { sync(tag, box); });
+            });
+        })();
     </script>
 </body>
 </html>
