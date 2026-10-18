@@ -431,7 +431,7 @@
         <div class="nav-right">
             <a href="{% url 'login' %}" class="nav-link">Log in</a>
             <button type="button" id="theme-toggle" onclick="toggleTheme()"
-                    title="Switch between light and dark mode" aria-label="Switch between light and dark mode">🌓</button>
+                    title="Switch between light and dark mode" aria-label="Switch between light and dark mode">☼</button>
         </div>
     </header>
 
@@ -448,8 +448,9 @@
                     <div class="hero-actions">
                         <a href="{% url 'login' %}" class="btn-start">Upload your first file</a>
                         <a href="#how-it-works" class="text-link">See how it works</a>
+                        <a href="#how-it-works" class="text-link">See how it works</a>
                     </div>
-                    <p class="hero-note">Accepts .csv, .xlsx, and .json files. No file handy? <a href="{% static 'samples/2yr_Sales_Data.csv' %}" download class="inline-link">Download a sample</a> to try it.</p>
+                    <p class="hero-note">Accepts CSV, Excel (.xlsx, .xls), and JSON files up to 5 MB. No file handy? <a ...>Download a sample</a> to try it.</p>
                 </div>
 
                 <div class="sample" role="img" aria-label="Illustration of messy data before cleaning and tidy data after cleaning, with a report of what changed">
@@ -460,9 +461,9 @@
                         <table>
                             <thead><tr><th>region</th><th>date</th><th>amount</th></tr></thead>
                             <tbody>
-                                <tr><td>  north </td><td>Sep 3, 2026</td><td>1200</td></tr>
-                                <tr><td>NORTH</td><td>2026-09-04</td><td>860</td></tr>
-                                <tr class="dupe"><td>NORTH</td><td>2026-09-04</td><td>860</td></tr>
+                                <tr><td>  North </td><td>Sep 3, 2026</td><td>1200</td></tr>
+                                <tr><td>North</td><td>2026-09-04</td><td>860</td></tr>
+                                <tr class="dupe"><td>North</td><td>2026-09-04</td><td>860</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -479,7 +480,7 @@
                     </div>
 
                     <div class="sample-report">
-                        <strong>Cleaning report:</strong> 1 duplicate removed, 1 date standardized, 2 names fixed.
+                        <strong>Cleaning report:</strong> 1 duplicate row removed, 1 value trimmed, date format standardized.
                     </div>
                 </div>
             </div>
@@ -489,7 +490,7 @@
         <section class="steps-section" id="how-it-works">
             <div class="steps-wrap">
                 <h2>From raw file to finished report</h2>
-                <p>Six steps, one upload. You can edit the results at any step.</p>
+                <p>Six steps, one upload. You can edit the written results before you export.</p>
 
                 <ol class="steps">
                     <li class="step">
@@ -503,7 +504,7 @@
                         <div class="step-num">2</div>
                         <div>
                             <h3>Clean it automatically</h3>
-                            <p>Cascade removes duplicates and blank rows, fixes spacing and capitalization, and standardizes mixed date formats. A report lists every change.</p>
+                            <p>Cascade removes duplicates and blank rows, fixes spacing and capitalization, and standardizes mixed date formats. A report lists every change.If any rows have missing values, you choose whether to remove them or review them one by one. Cascade never fills them in for you.</p>
                         </div>
                     </li>
                     <li class="step">
@@ -531,7 +532,7 @@
                         <div class="step-num">6</div>
                         <div>
                             <h3>Export a PDF</h3>
-                            <p>Combine the charts, insights, summary, and recommendations into one report you can share.</p>
+                            <p>Combine the metrics, charts, pivot tables, insights, summary, and recommendations into one report. Save it as a PDF from your browser’s print window.</p>
                         </div>
                     </li>
                 </ol>
@@ -623,12 +624,12 @@
             <div class="try-grid">
                 <div class="try-card">
                     <h3>Try the sample data</h3>
-                    <p>Two years of orders: 5,000 rows and 21 columns covering revenue, cost, profit, and discounts. Upload it to produce the report above.</p>
+                    <p>Two years of orders: 5,000 rows and 21 columns covering revenue, cost, profit, and discounts. Upload it and build your own charts to recreate the report above.</p>
                     <a href="{% static 'samples/2yr_Sales_Data.csv' %}" download class="btn-outline">Download sample CSV</a>
                 </div>
                 <div class="try-card">
                     <h3>Use your own file</h3>
-                    <p>Log in, upload a CSV, Excel, or JSON file, and get your cleaned data and first charts.</p>
+                    <p>Log in or sign up, upload a CSV, Excel, or JSON file, then clean it and start building charts.</p>
                     <a href="{% url 'login' %}" class="btn-start">Upload your first file</a>
                 </div>
             </div>
